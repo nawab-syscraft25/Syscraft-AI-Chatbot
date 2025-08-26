@@ -161,9 +161,15 @@ def upload_document():
 
 # ---------------------------
 # Admin Routes (under /admin)
+
+import os
+
+USER_NAME= os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+
 # ---------------------------
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "syscraft2025"
+ADMIN_USERNAME = USER_NAME
+ADMIN_PASSWORD = ADMIN_PASSWORD
 
 
 def check_auth(username, password):
@@ -439,5 +445,5 @@ def clear_applications():
 # Run App
 # ---------------------------
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 9000))
+    port = int(os.environ.get("PORT", 9050))
     app.run(host="0.0.0.0", port=port, debug=True)
