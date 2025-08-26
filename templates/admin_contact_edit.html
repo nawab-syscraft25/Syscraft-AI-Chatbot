@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Contact - Syscraft Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-edit me-2"></i>Edit Contact</h2>
+    <a href="/admin/contacts/{{ contact[0] }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Contact
+    </a>
+</div>
+
+{% if contact %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ contact[1] }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ contact[2] }}" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ contact[3] }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="subject" name="subject" value="{{ contact[4] }}">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="message" class="form-label">Message</label>
+                <textarea class="form-control" id="message" name="message" rows="5">{{ contact[5] }}</textarea>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <a href="/admin/contacts/{{ contact[0] }}" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Update Contact
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-danger">
+    Contact not found!
+</div>
+{% endif %}
+{% endblock %}

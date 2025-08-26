@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Application Details - Syscraft Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-file-alt me-2"></i>Application Details</h2>
+    <a href="/admin/applications" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Applications
+    </a>
+</div>
+
+{% if application %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Applicant Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="150">Name:</th>
+                        <td>{{ application.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ application.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Phone:</th>
+                        <td>{{ application.phone }}</td>
+                    </tr>
+                    <tr>
+                        <th>Position:</th>
+                        <td>{{ application.position }}</td>
+                    </tr>
+                    <tr>
+                        <th>Application Date:</th>
+                        <td>{{ application.application_date }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if application.status == 'pending' else 'success' if application.status == 'approved' else 'danger' }}">
+                                {{ application.status|title }}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        {% if application.extracted_text %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Resume Content (Extracted)</h5>
+            </div>
+            <div class="card-body">
+                <div style="max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                    <pre style="white-space: pre-wrap; font-family: inherit;">{{ application.extracted_text }}</pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/admin/applications/{{ application.id }}/download_resume" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Download Resume
+                    </a>
+                    <button class="btn btn-success" onclick="updateStatus('approved')">
+                        <i class="fas fa-check me-2"></i>Approve
+                    </button>
+                    <button class="btn btn-warning" onclick="updateStatus('interview')">
+                        <i class="fas fa-calendar me-2"></i>Schedule Interview
+                    </button>
+                    <button class="btn btn-danger" onclick="updateStatus('rejected')">
+                        <i class="fas fa-times me-2"></i>Reject
+                    </button>
+                    <hr>
+                    <form method="POST" action="/admin/applications/{{ application.id }}/delete" 
+                          onsubmit="return confirm('Are you sure you want to delete this application?')">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="fas fa-trash me-2"></i>Delete Application
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Resume File</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Filename:</strong> {{ application.resume_filename }}</p>
+                <p><strong>Upload Date:</strong> {{ application.application_date }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-danger">
+    Application not found!
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateStatus(status) {
+    // This would typically send an AJAX request to update the status
+    alert('Status update functionality would be implemented here. New status: ' + status);
+}
+</script>
+{% endblock %}

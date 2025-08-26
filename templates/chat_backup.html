@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Syscraft AI Assistant</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+    <div class="chat-header">
+      <div class="chat-logo">
+        <img src="{{ url_for('static', filename='images/new-logo.png') }}" alt="Syscraft Logo">
+        <div class="company-name">Syscraft AI</div>
+      </div>
+      <div class="chat-close"><i class="fa-solid fa-xmark"></i></div>
+    </div>nk rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+    }
+ 
+    .chatbox {
+      max-width: 450px;
+      margin: 20px auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      height: 95vh;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+ 
+    .chat-header {
+      background: linear-gradient(135deg, #2c3e50 0%, #4a6741 100%);
+      color: white;
+      padding: 15px 20px;
+      font-weight: 600;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 20px 20px 0px 0px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+ 
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 25px;
+      background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+    }
+ 
+    .message {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+ 
+    .message.user .text {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      align-self: flex-end;
+      border-radius: 18px 18px 5px 18px;
+      text-wrap: wrap;
+      font-size: 15px;
+      box-shadow: 0 3px 15px rgba(102, 126, 234, 0.3);
+    }
+ 
+    .message.bot .text {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      color: #2c3e50;
+      align-self: flex-start;
+      border-radius: 18px 18px 18px 5px;
+      font-size: 15px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      border: 1px solid #e9ecef;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+    }
+ 
+    .text {
+      padding: 15px 20px;
+      border-radius: 18px;
+      max-width: 85%;
+      white-space: pre-line;
+      font-weight: 500;
+    }
+ 
+    .chat-input {
+      padding: 15px 20px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      display: flex;
+      position: relative;
+      border-radius: 0px 0px 20px 20px;
+      border-top: 1px solid #e9ecef;
+    }
+ 
+    .chat-input input {
+      flex: 1;
+      font-size: 14px;
+      border: 2px solid #e9ecef;
+      border-radius: 25px;
+      padding: 15px 200px 15px 20px;
+      background: #ffffff;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .chat-input input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      outline: none;
+    }
+ 
+    .typing {
+      font-style: italic;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+ 
+    a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+
+    .chat-logo {
+      width: 45%;
+      display: flex;
+      align-items: center;
+    }
+
+    .chat-logo img {
+      width: 100%;
+      filter: brightness(0) invert(1);
+    }
+
+    .chat-logo .company-name {
+      margin-left: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .chat-close i {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      height: 35px;
+      width: 35px;
+      line-height: 35px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .chat-close i:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+    .send-btn {
+      color: #fff;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: 18px;
+      right: 25px;
+      height: 40px;
+      width: 40px;
+      padding: 0px;
+      line-height: 40px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .mic-btn {
+      color: #fff;
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: 18px;
+      right: 70px;
+      height: 40px;
+      width: 40px;
+      padding: 0px;
+      line-height: 40px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .mic-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+    }
+
+    .mic-btn.recording {
+      background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+      animation: pulse 1s infinite;
+    }
+    .speaker-btn {
+      color: #fff;
+      background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: 18px;
+      right: 115px;
+      height: 40px;
+      width: 40px;
+      padding: 0px;
+      line-height: 40px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 15px rgba(23, 162, 184, 0.3);
+    }
+
+    .speaker-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(23, 162, 184, 0.4);
+    }
+
+    .speaker-btn.muted {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    }
+
+    .file-btn {
+      color: #fff;
+      background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: 18px;
+      right: 160px;
+      height: 40px;
+      width: 40px;
+      padding: 0px;
+      line-height: 40px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 15px rgba(253, 126, 20, 0.3);
+    }
+
+    .file-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(253, 126, 20, 0.4);
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .speaker-btn.speaking {
+      animation: pulse 0.8s infinite;
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    }
+
+    /* Responsive Design */
+    @media only screen and (max-width: 767px) {
+      .chatbox {
+        margin: 10px;
+        height: 95vh;
+        border-radius: 15px;
+      }
+
+      .chat-header {
+        border-radius: 15px 15px 0px 0px;
+      }
+
+      .chat-input {
+        border-radius: 0px 0px 15px 15px;
+      }
+
+      .chat-logo {
+        width: 50%;
+      }
+
+      .chat-input input {
+        padding: 18px 220px 18px 20px;
+        font-size: 16px;
+      }
+
+      .chat-input button {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+        top: 15px;
+      }
+
+      .send-btn {
+        right: 20px;
+      }
+
+      .mic-btn {
+        right: 75px;
+      }
+
+      .speaker-btn {
+        right: 130px;
+      }
+
+      .file-btn {
+        right: 185px;
+      }
+    }
+    @media (max-width: 576px) {
+      .chatbox {
+        margin: 5px;
+        height: 98vh;
+        border-radius: 10px;
+      }
+
+      .chat-header {
+        border-radius: 10px 10px 0px 0px;
+        padding: 12px 15px;
+        font-size: 1.1rem;
+      }
+
+      .chat-input {
+        border-radius: 0px 0px 10px 10px;
+        padding: 12px 15px;
+      }
+ 
+      .chat-input input {
+        padding: 15px 200px 15px 15px;
+        font-size: 0.9rem;
+        border-radius: 20px;
+      }
+      
+      .chat-input button {
+        width: 35px;
+        height: 35px;
+        font-size: 0.8rem;
+        top: 15px;
+      }
+      
+      .send-btn {
+        right: 18px;
+      }
+      
+      .mic-btn {
+        right: 58px;
+      }
+      
+      .speaker-btn {
+        right: 98px;
+      }
+
+      .file-btn {
+        right: 138px;
+      }
+ 
+      .chat-header {
+        font-size: 1rem;
+      }
+ 
+      .text {
+        font-size: 0.9rem;
+        padding: 12px 16px;
+      }
+
+      .message {
+        margin-bottom: 15px;
+      }
+
+      .chat-body {
+        padding: 20px 15px;
+      }
+    }
+
+    /* Success and error message styling */
+    .success-message {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 15px;
+      margin: 10px 0;
+      box-shadow: 0 3px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .error-message {
+      background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 15px;
+      margin: 10px 0;
+      box-shadow: 0 3px 15px rgba(220, 53, 69, 0.3);
+    }
+
+    /* Upload progress indicator */
+    .upload-progress {
+      background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 15px;
+      margin: 10px 0;
+      box-shadow: 0 3px 15px rgba(111, 66, 193, 0.3);
+      animation: pulse 1.5s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="chatbox">
+    <div class="chat-header">
+      <div class="chat-logo"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+</div>
+      <div class="chat-close"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div class="chat-body" id="chat-body">
+      <div class="message bot">
+        <div class="text">
+          👋 Welcome to <strong>Syscraft AI Assistant</strong>!<br><br>
+          I'm here to help you with:
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>🔧 IT Solutions & Technology Consulting</li>
+            <li>💼 Career Opportunities at Syscraft</li>
+            <li>📱 Web & Mobile Development</li>
+            <li>☁️ Cloud Services & DevOps</li>
+            <li>🤖 AI/ML & Chatbot Solutions</li>
+            <li>🎨 UI/UX Design Services</li>
+          </ul>
+          How can I assist you today?
+        </div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Ask me about our IT solutions, careers, or tech expertise..." class="form-control" />
+      <input type="file" id="resume-upload" accept=".pdf" style="display: none;" onchange="handleResumeUpload()" />
+      <button class="file-btn btn" onclick="document.getElementById('resume-upload').click()" id="file-btn" title="Upload Resume (PDF only)"><i class="fa-solid fa-file-pdf"></i></button>
+      <button class="mic-btn btn" onclick="toggleSpeechRecognition()" id="mic-btn" title="Voice Input"><i class="fa-solid fa-microphone"></i></button>
+      <button class="speaker-btn btn" onclick="toggleTextToSpeech()" id="speaker-btn" title="Toggle Voice Output"><i class="fa-solid fa-volume-up"></i></button>
+      <button class="send-btn btn" onclick="sendMessage()" id="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+ 
+  <script>
+  const sessionId = Math.random().toString(36).substring(2);
+  
+  // Speech Recognition Variables
+  let recognition = null;
+  let isRecording = false;
+  
+  // Text-to-Speech Variables
+  let speechEnabled = true;
+  let currentSpeech = null;
+  
+  // Initialize Speech Recognition
+  function initSpeechRecognition() {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = function() {
+        isRecording = true;
+        const micBtn = document.getElementById('mic-btn');
+        micBtn.classList.add('recording');
+        micBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+        micBtn.title = 'Stop Recording';
+        document.getElementById('user-input').placeholder = 'Listening...';
+      };
+      
+      recognition.onresult = function(event) {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        
+        const input = document.getElementById('user-input');
+        input.value = finalTranscript || interimTranscript;
+      };
+      
+      recognition.onend = function() {
+        isRecording = false;
+        const micBtn = document.getElementById('mic-btn');
+        micBtn.classList.remove('recording');
+        micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+        micBtn.title = 'Voice Input';
+        document.getElementById('user-input').placeholder = 'Ask me about our IT solutions, careers, or tech expertise...';
+        
+        // Auto-send if we have text
+        const input = document.getElementById('user-input');
+        if (input.value.trim()) {
+          sendMessage();
+        }
+      };
+      
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        isRecording = false;
+        const micBtn = document.getElementById('mic-btn');
+        micBtn.classList.remove('recording');
+        micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+        micBtn.title = 'Voice Input';
+        document.getElementById('user-input').placeholder = 'Ask me about our IT solutions, careers, or tech expertise...';
+      };
+    } else {
+      console.warn('Speech recognition not supported in this browser');
+    }
+  }
+  
+  // Toggle Speech Recognition
+  function toggleSpeechRecognition() {
+    if (!recognition) {
+      alert('Speech recognition is not supported in your browser. Please use Chrome, Safari, or Edge.');
+      return;
+    }
+    
+    if (isRecording) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  }
+  
+  // Enhanced Text-to-Speech Function
+  function speakText(text) {
+    if (!speechEnabled || !('speechSynthesis' in window)) {
+      return;
+    }
+    
+    // Stop any current speech immediately
+    speechSynthesis.cancel();
+    
+    // Clean text for speech (remove HTML and markdown)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = text;
+    let cleanText = tempDiv.textContent || tempDiv.innerText || '';
+    
+    if (!cleanText.trim()) return;
+    
+    // Clean up common markdown and special characters for better speech
+    cleanText = cleanText
+      .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove bold markdown
+      .replace(/\*(.*?)\*/g, '$1')      // Remove italic markdown
+      .replace(/`(.*?)`/g, '$1')        // Remove code backticks
+      .replace(/#{1,6}\s/g, '')         // Remove heading markers
+      .replace(/\n{2,}/g, '. ')         // Replace multiple newlines with period
+      .replace(/\n/g, ', ')             // Replace single newlines with comma
+      .replace(/\s{2,}/g, ' ')          // Replace multiple spaces with single space
+      .trim();
+    
+    // Split long text into chunks for better performance
+    const maxLength = 200;
+    const chunks = splitTextIntoChunks(cleanText, maxLength);
+    
+    speakChunks(chunks, 0);
+  }
+  
+  // Function to split text into manageable chunks
+  function splitTextIntoChunks(text, maxLength) {
+    if (text.length <= maxLength) {
+      return [text];
+    }
+    
+    const chunks = [];
+    let currentChunk = '';
+    const sentences = text.split(/[.!?]+/);
+    
+    for (let sentence of sentences) {
+      sentence = sentence.trim();
+      if (!sentence) continue;
+      
+      if (currentChunk.length + sentence.length + 1 <= maxLength) {
+        currentChunk += (currentChunk ? '. ' : '') + sentence;
+      } else {
+        if (currentChunk) {
+          chunks.push(currentChunk + '.');
+          currentChunk = sentence;
+        } else {
+          // If single sentence is too long, split by words
+          const words = sentence.split(' ');
+          let wordChunk = '';
+          for (let word of words) {
+            if (wordChunk.length + word.length + 1 <= maxLength) {
+              wordChunk += (wordChunk ? ' ' : '') + word;
+            } else {
+              if (wordChunk) chunks.push(wordChunk);
+              wordChunk = word;
+            }
+          }
+          if (wordChunk) currentChunk = wordChunk;
+        }
+      }
+    }
+    
+    if (currentChunk) {
+      chunks.push(currentChunk + (currentChunk.endsWith('.') ? '' : '.'));
+    }
+    
+    return chunks.filter(chunk => chunk.trim());
+  }
+  
+  // Function to speak text chunks sequentially with better indicators
+  function speakChunks(chunks, index) {
+    if (index >= chunks.length || !speechEnabled) {
+      currentSpeech = null;
+      // Remove speaking indicator when done
+      const speakerBtn = document.getElementById('speaker-btn');
+      if (speakerBtn) {
+        speakerBtn.classList.remove('speaking');
+        speakerBtn.style.animation = 'none';
+      }
+      return;
+    }
+    
+    // Add speaking indicator if this is the first chunk
+    if (index === 0) {
+      const speakerBtn = document.getElementById('speaker-btn');
+      if (speakerBtn) {
+        speakerBtn.classList.add('speaking');
+      }
+    }
+    
+    const chunk = chunks[index];
+    currentSpeech = new SpeechSynthesisUtterance(chunk);
+    
+    // Optimized speech settings for faster, clearer speech
+    currentSpeech.rate = 1.3;        // Faster speech rate
+    currentSpeech.pitch = 1.1;       // Slightly higher pitch for clarity
+    currentSpeech.volume = 0.9;      // Slightly lower volume to avoid distortion
+    
+    // Get the best available voice
+    const voices = speechSynthesis.getVoices();
+    const bestVoice = getBestVoice(voices);
+    if (bestVoice) {
+      currentSpeech.voice = bestVoice;
+    }
+    
+    // Set up event handlers
+    currentSpeech.onend = function() {
+      if (speechEnabled) {
+        setTimeout(() => speakChunks(chunks, index + 1), 50); // Shorter pause between chunks
+      } else {
+        // Remove speaking indicator if speech was disabled
+        const speakerBtn = document.getElementById('speaker-btn');
+        if (speakerBtn) {
+          speakerBtn.classList.remove('speaking');
+          speakerBtn.style.animation = 'none';
+        }
+      }
+    };
+    
+    currentSpeech.onerror = function(event) {
+      console.error('Speech synthesis error:', event.error);
+      currentSpeech = null;
+      // Remove speaking indicator on error
+      const speakerBtn = document.getElementById('speaker-btn');
+      if (speakerBtn) {
+        speakerBtn.classList.remove('speaking');
+        speakerBtn.style.animation = 'none';
+      }
+    };
+    
+    // Speak the chunk
+    speechSynthesis.speak(currentSpeech);
+  }
+  
+  // Function to select the best available voice
+  function getBestVoice(voices) {
+    // Priority order for voice selection
+    const voicePreferences = [
+      // Google voices (usually highest quality)
+      v => v.name.includes('Google') && v.lang.startsWith('en-'),
+      // Microsoft voices
+      v => v.name.includes('Microsoft') && v.lang.startsWith('en-'),
+      // Female voices (often clearer)
+      v => (v.name.includes('Female') || v.name.includes('Woman')) && v.lang.startsWith('en-'),
+      // Any English voice marked as local
+      v => v.lang.startsWith('en-') && v.localService,
+      // Any English voice
+      v => v.lang.startsWith('en-'),
+      // Default voice
+      v => v.default
+    ];
+    
+    for (let preference of voicePreferences) {
+      const voice = voices.find(preference);
+      if (voice) return voice;
+    }
+    
+    return voices[0]; // Fallback to first available voice
+  }
+  
+  // Enhanced Toggle Text-to-Speech with better feedback
+  function toggleTextToSpeech() {
+    speechEnabled = !speechEnabled;
+    const speakerBtn = document.getElementById('speaker-btn');
+    
+    if (speechEnabled) {
+      speakerBtn.classList.remove('muted');
+      speakerBtn.innerHTML = '<i class="fa-solid fa-volume-up"></i>';
+      speakerBtn.title = 'Voice Output: ON (Click to disable)';
+      speakerBtn.style.backgroundColor = '#17a2b8';
+      
+      // Give audio feedback when enabling
+      if ('speechSynthesis' in window) {
+        const testSpeech = new SpeechSynthesisUtterance('Voice output enabled');
+        testSpeech.rate = 1.2;
+        testSpeech.volume = 0.7;
+        testSpeech.pitch = 1.1;
+        speechSynthesis.speak(testSpeech);
+      }
+    } else {
+      speakerBtn.classList.add('muted');
+      speakerBtn.innerHTML = '<i class="fa-solid fa-volume-mute"></i>';
+      speakerBtn.title = 'Voice Output: OFF (Click to enable)';
+      speakerBtn.style.backgroundColor = '#6c757d';
+      
+      // Stop any current speech immediately
+      speechSynthesis.cancel();
+      currentSpeech = null;
+    }
+  }
+  
+  // Function to stop current speech (useful for interrupting long responses)
+  function stopCurrentSpeech() {
+    speechSynthesis.cancel();
+    currentSpeech = null;
+  }
+  
+  // Enhanced initialization with voice preloading
+  document.addEventListener('DOMContentLoaded', function() {
+    initSpeechRecognition();
+    
+    // Enhanced voice loading and preloading
+    if ('speechSynthesis' in window) {
+      // Force load voices immediately
+      const loadVoices = () => {
+        const voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          console.log('Loaded', voices.length, 'voices for text-to-speech');
+          // Test the speech synthesis is working
+          const testVoice = getBestVoice(voices);
+          if (testVoice) {
+            console.log('Using voice:', testVoice.name);
+          }
+        } else {
+          // Retry loading voices
+          setTimeout(loadVoices, 100);
+        }
+      };
+      
+      speechSynthesis.addEventListener('voiceschanged', loadVoices);
+      loadVoices(); // Try to load immediately
+      
+      // Warmup speech synthesis for faster first use
+      setTimeout(() => {
+        const warmupSpeech = new SpeechSynthesisUtterance('');
+        warmupSpeech.volume = 0;
+        speechSynthesis.speak(warmupSpeech);
+      }, 1000);
+    }
+    
+    // Add keyboard shortcut for voice toggle (Ctrl+Shift+V)
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        toggleTextToSpeech();
+      }
+      // Add escape key to stop current speech
+      if (e.key === 'Escape' && currentSpeech) {
+        stopCurrentSpeech();
+      }
+    });
+    
+    // Update speaker button tooltip with keyboard shortcut info
+    const speakerBtn = document.getElementById('speaker-btn');
+    if (speakerBtn) {
+      speakerBtn.title = 'Voice Output: ON (Ctrl+Shift+V to toggle, Esc to stop)';
+    }
+  });
+ 
+  function appendMessage(sender, initialText = "") {
+    const chatBody = document.getElementById("chat-body");
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message", sender);
+ 
+    const textDiv = document.createElement("div");
+    textDiv.classList.add("text");
+    textDiv.innerHTML = initialText;
+ 
+    messageDiv.appendChild(textDiv);
+    chatBody.appendChild(messageDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+ 
+    return textDiv;
+  }
+ 
+  function showTypingIndicator() {
+    const chatBody = document.getElementById("chat-body");
+    const typingDiv = document.createElement("div");
+    typingDiv.id = "typing-indicator";
+    typingDiv.classList.add("message", "bot");
+ 
+    const textDiv = document.createElement("div");
+    textDiv.classList.add("text", "typing");
+    textDiv.innerText = "Syscraft AI is typing...";
+ 
+    typingDiv.appendChild(textDiv);
+    chatBody.appendChild(typingDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+ 
+  function removeTypingIndicator() {
+    const typing = document.getElementById("typing-indicator");
+    if (typing) typing.remove();
+  }
+ 
+  function disableInput() {
+    document.getElementById("user-input").disabled = true;
+    document.getElementById("send-btn").disabled = true;
+  }
+ 
+  function enableInput() {
+    document.getElementById("user-input").disabled = false;
+    document.getElementById("send-btn").disabled = false;
+    document.getElementById("user-input").focus();
+  }
+ 
+  function formatResponse(text) {
+    if (typeof text !== "string") {
+      text = JSON.stringify(text, null, 2);
+    }
+ 
+    return text
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")         // bold
+      .replace(/`(.*?)`/g, "<code>$1</code>")                   // inline code
+      .replace(/(?:^|\s)(https?:\/\/[^\s]+)/g, ' <a href="$1" target="_blank">$1</a>'); // links
+  }
+ 
+  function typeText(element, rawHtml, callback) {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = rawHtml;
+    const plainText = tempDiv.innerText || tempDiv.textContent;
+ 
+    let index = 0;
+    const typingSpeed = 15;
+ 
+    function type() {
+      if (index < plainText.length) {
+        const char = plainText.charAt(index);
+        element.innerHTML += char === "\n" ? "<br>" : char;
+        index++;
+        setTimeout(type, typingSpeed);
+      } else {
+        element.innerHTML = rawHtml;  // Replace with actual HTML after typing
+        if (callback) callback();
+      }
+    }
+    type();
+  }
+ 
+  async function sendMessage() {
+    const input = document.getElementById("user-input");
+    const message = input.value.trim();
+    if (!message) return;
+ 
+    const userBubble = appendMessage("user", message);
+    input.value = "";
+    disableInput();
+    showTypingIndicator();
+ 
+    try {
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, session_id: sessionId })
+      });
+ 
+      const data = await res.json();
+      removeTypingIndicator();
+ 
+      if (data.status === "success") {
+        const raw = data.data.answer || data.data;
+        const formatted = formatResponse(raw);
+        const botBubble = appendMessage("bot", "");
+        
+        // Start speaking immediately when response arrives
+        if (speechEnabled) {
+          const speakerBtn = document.getElementById('speaker-btn');
+          if (speakerBtn) {
+            speakerBtn.style.animation = 'pulse 0.8s infinite';
+          }
+          speakText(raw);
+        }
+        
+        typeText(botBubble, formatted, function() {
+          enableInput();
+        });
+      } else {
+        appendMessage("bot", "⚠️ Error: " + (data.error || "Unknown error"));
+        enableInput();
+      }
+    } catch (err) {
+      console.error(err);
+      removeTypingIndicator();
+      appendMessage("bot", "⚠️ Failed to connect to the server.");
+      enableInput();
+    }
+  }
+ 
+  document.getElementById("user-input").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") sendMessage();
+  });
+
+  // Resume upload functionality
+  let uploadedResume = null;
+
+  async function handleResumeUpload() {
+    const fileInput = document.getElementById('resume-upload');
+    const file = fileInput.files[0];
+    
+    if (!file) return;
+    
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      appendMessage("bot", "⚠️ Please upload a PDF file only.");
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      appendMessage("bot", "⚠️ File size should be less than 5MB.");
+      return;
+    }
+    
+    disableInput();
+    appendMessage("user", `📄 Uploaded resume: ${file.name}`);
+    addTypingIndicator();
+    
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+      
+      const response = await fetch('/upload_resume', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      removeTypingIndicator();
+      
+      if (result.status === 'success') {
+        uploadedResume = {
+          filename: result.filename,
+          base64_content: result.base64_content
+        };
+        appendMessage("bot", `✅ Resume uploaded successfully! I can now help you apply for positions at Syscraft. Would you like to see our current job openings?`);
+      } else {
+        appendMessage("bot", "⚠️ Error uploading resume: " + (result.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error(err);
+      removeTypingIndicator();
+      appendMessage("bot", "⚠️ Failed to upload resume. Please try again.");
+    }
+    
+    enableInput();
+    fileInput.value = ''; // Reset file input
+  }
+</script>
+ 
+</body>
+</html>
+ 
+ 

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Job Opening - Syscraft Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-edit me-2"></i>Edit Job Opening</h2>
+    <a href="/admin/jobs" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Jobs
+    </a>
+</div>
+
+{% if job %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Job Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ job.title }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="department" class="form-label">Department *</label>
+                        <select class="form-control" id="department" name="department" required>
+                            <option value="">Select Department</option>
+                            <option value="Development" {{ 'selected' if job.department == 'Development' else '' }}>Development</option>
+                            <option value="Design" {{ 'selected' if job.department == 'Design' else '' }}>Design</option>
+                            <option value="AI/ML" {{ 'selected' if job.department == 'AI/ML' else '' }}>AI/ML</option>
+                            <option value="Operations" {{ 'selected' if job.department == 'Operations' else '' }}>Operations</option>
+                            <option value="Marketing" {{ 'selected' if job.department == 'Marketing' else '' }}>Marketing</option>
+                            <option value="Sales" {{ 'selected' if job.department == 'Sales' else '' }}>Sales</option>
+                            <option value="HR" {{ 'selected' if job.department == 'HR' else '' }}>HR</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ job.location }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="employment_type" class="form-label">Employment Type</label>
+                        <select class="form-control" id="employment_type" name="employment_type">
+                            <option value="Full-time" {{ 'selected' if job.employment_type == 'Full-time' else '' }}>Full-time</option>
+                            <option value="Part-time" {{ 'selected' if job.employment_type == 'Part-time' else '' }}>Part-time</option>
+                            <option value="Contract" {{ 'selected' if job.employment_type == 'Contract' else '' }}>Contract</option>
+                            <option value="Internship" {{ 'selected' if job.employment_type == 'Internship' else '' }}>Internship</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{ 'checked' if job.is_active else '' }}>
+                    <label class="form-check-label" for="is_active">
+                        Active Job Opening
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Job Description *</label>
+                <textarea class="form-control" id="description" name="description" rows="6" required>{{ job.description }}</textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="requirements" class="form-label">Requirements *</label>
+                <textarea class="form-control" id="requirements" name="requirements" rows="6" required>{{ job.requirements }}</textarea>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <a href="/admin/jobs" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Update Job Opening
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-danger">
+    Job opening not found!
+</div>
+{% endif %}
+{% endblock %}

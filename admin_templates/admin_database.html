@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Database Management - Syscraft Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-database me-2"></i>Database Management</h2>
+    <span class="badge bg-info">System Database Tools</span>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-save me-2"></i>Backup Database</h5>
+            </div>
+            <div class="card-body">
+                <p>Create a backup of all database files including contacts and job applications.</p>
+                <form method="POST" action="/admin/database/backup">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Create Backup
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Database Statistics</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Contacts Database:</strong> Active</p>
+                <p><strong>HR Database:</strong> Active</p>
+                <p><strong>Last Backup:</strong> Never</p>
+                <p><strong>Total Records:</strong> {{ stats.total_contacts + stats.total_applications if stats else 'Unknown' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Clear Contacts</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-warning">⚠️ This will permanently delete all contact inquiries.</p>
+                <form method="POST" action="/admin/database/clear_contacts" 
+                      onsubmit="return confirm('Are you sure? This cannot be undone!')">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-trash me-2"></i>Clear All Contacts
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Clear Applications</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-danger">⚠️ This will permanently delete all job applications.</p>
+                <form method="POST" action="/admin/database/clear_applications" 
+                      onsubmit="return confirm('Are you sure? This cannot be undone!')">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Clear All Applications
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>Database Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Contacts Database (contacts.db)</h6>
+                        <ul>
+                            <li>Location: Root directory</li>
+                            <li>Tables: contact</li>
+                            <li>Purpose: Store customer inquiries</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>HR Database (hr_applications.db)</h6>
+                        <ul>
+                            <li>Location: tools/ directory</li>
+                            <li>Tables: job_applications, job_openings</li>
+                            <li>Purpose: Store job applications and openings</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

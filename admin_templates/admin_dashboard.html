@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Syscraft Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+    <span class="badge bg-primary">Syscraft Admin Panel</span>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4>{{ stats.total_contacts }}</h4>
+                        <p class="mb-0">Total Contacts</p>
+                    </div>
+                    <i class="fas fa-address-book fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4>{{ stats.total_applications }}</h4>
+                        <p class="mb-0">Job Applications</p>
+                    </div>
+                    <i class="fas fa-file-alt fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4>{{ stats.total_job_openings }}</h4>
+                        <p class="mb-0">Job Openings</p>
+                    </div>
+                    <i class="fas fa-briefcase fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4>Online</h4>
+                        <p class="mb-0">System Status</p>
+                    </div>
+                    <i class="fas fa-server fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-clock me-2"></i>Recent Contacts</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.recent_contacts %}
+                    <div class="list-group">
+                        {% for contact in stats.recent_contacts %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ contact[1] }}</h6>
+                                    <p class="mb-1">{{ contact[4] }}</p>
+                                    <small>{{ contact[2] }} | {{ contact[6] }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="/admin/contacts" class="btn btn-outline-primary">View All Contacts</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No recent contacts</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user-tie me-2"></i>Recent Applications</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.recent_applications %}
+                    <div class="list-group">
+                        {% for app in stats.recent_applications %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ app.name }}</h6>
+                                    <p class="mb-1">{{ app.position }}</p>
+                                    <small>{{ app.email }} | {{ app.application_date }}</small>
+                                </div>
+                                <span class="badge bg-secondary">{{ app.status }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="/admin/applications" class="btn btn-outline-success">View All Applications</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No recent applications</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="/admin/contacts/add" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="fas fa-plus me-2"></i>Add Contact
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/admin/jobs/add" class="btn btn-outline-success w-100 mb-2">
+                            <i class="fas fa-briefcase me-2"></i>Add Job Opening
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/admin/database" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="fas fa-database me-2"></i>Manage Database
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/settings" class="btn btn-outline-info w-100 mb-2">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

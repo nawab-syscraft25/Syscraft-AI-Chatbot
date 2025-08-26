@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Syscraft AI Assistant</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: "Poppins", sans-serif;
+    }
+
+    /* Chatbot Toggle Button */
+    .chatbot-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #fada5e 0%, #f39c12 100%);
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .chatbot-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .chatbot-toggle i {
+      font-size: 24px;
+      color: #333;
+    }
+
+    .chatbot-toggle.active {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+
+    .chatbot-toggle.active i {
+      color: white;
+    }
+ 
+    .chatbox {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      max-width: 400px;
+      width: 90%;
+      max-width: 400px;
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      height: 600px;
+      z-index: 999;
+      border: 1px solid #e0e0e0;
+    }
+
+    .chatbox.active {
+      display: flex;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+ 
+    .chat-header {
+      background: linear-gradient(135deg, #070a0c 0%, #2c3e50 100%);
+      color: white;
+      padding: 15px 20px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 15px 15px 0px 0px;
+    }
+ 
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+ 
+    .message {
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+ 
+    .message.user .text {
+      background-color: #fada5e;
+      color: #000;
+      align-self: flex-end;
+      border-radius: 15px 15px 5px 15px;
+      text-wrap: wrap;
+      font-size: 14px;
+      max-width: 80%;
+      box-shadow: 0 2px 8px rgba(250, 218, 94, 0.3);
+    }
+ 
+    .message.bot .text {
+      background-color: #ffffff;
+      color: #333;
+      align-self: flex-start;
+      border-radius: 15px 15px 15px 5px;
+      font-size: 14px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 80%;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+ 
+    .text {
+      padding: 12px 16px;
+      border-radius: 15px;
+      white-space: pre-line;
+      font-weight: 500;
+    }
+ 
+    .chat-input {
+      padding: 15px;
+      background: #ffffff;
+      display: flex;
+      position: relative;
+      border-radius: 0px 0px 15px 15px;
+      border-top: 1px solid #e0e0e0;
+    }
+ 
+    .chat-input input {
+      flex: 1;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      padding: 12px 140px 12px 16px;
+      background: #f8f9fa;
+      transition: all 0.3s ease;
+    }
+
+    .chat-input input:focus {
+      border-color: #fada5e;
+      box-shadow: 0 0 0 2px rgba(250, 218, 94, 0.2);
+      outline: none;
+      background: #ffffff;
+    }
+ 
+    .typing {
+      font-style: italic;
+      color: #666;
+      margin-top: 5px;
+    }
+ 
+    a {
+      color: #f39c12;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: #e67e22;
+      text-decoration: underline;
+    }
+
+    .chat-logo {
+      display: flex;
+      align-items: center;
+    }
+
+    .chat-logo img {
+      width: 35px;
+      height: 35px;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+
+    .company-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .chat-minimize {
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
+    }
+
+    .chat-minimize:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-minimize i {
+      font-size: 16px;
+      color: #ffffff;
+    }
+
+    .send-btn {
+      color: #333;
+      background-color: #fada5e;
+      border-radius: 50%;
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      height: 35px;
+      width: 35px;
+      padding: 0px;
+      line-height: 35px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(250, 218, 94, 0.3);
+    }
+
+    .send-btn:hover {
+      background-color: #f39c12;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+    }
+
+    .mic-btn {
+      color: #fff;
+      background-color: #28a745;
+      border-radius: 50%;
+      position: absolute;
+      top: 18px;
+      right: 60px;
+      height: 35px;
+      width: 35px;
+      padding: 0px;
+      line-height: 35px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .mic-btn:hover {
+      background-color: #218838;
+      transform: translateY(-1px);
+    }
+
+    .mic-btn.recording {
+      background-color: #dc3545;
+      animation: pulse 1s infinite;
+    }
+
+    .file-btn {
+      color: #fff;
+      background-color: #fd7e14;
+      border-radius: 50%;
+      position: absolute;
+      top: 18px;
+      right: 100px;
+      height: 35px;
+      width: 35px;
+      padding: 0px;
+      line-height: 35px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(253, 126, 20, 0.3);
+    }
+
+    .file-btn:hover {
+      background-color: #e66f0f;
+      transform: translateY(-1px);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Quick actions styling */
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+      padding: 0 20px;
+    }
+
+    .quick-action-btn {
+      background: linear-gradient(135deg, #fada5e 0%, #f39c12 100%);
+      color: #333;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .chatbox {
+        bottom: 80px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        width: auto;
+        height: 450px;
+      }
+
+      .chatbot-toggle {
+        bottom: 15px;
+        right: 15px;
+        width: 55px;
+        height: 55px;
+      }
+
+      .chatbot-toggle i {
+        font-size: 20px;
+      }
+
+      .chat-input input {
+        padding: 12px 120px 12px 16px;
+        font-size: 16px;
+      }
+
+      .chat-input button {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+        top: 19px;
+      }
+
+      .send-btn {
+        right: 18px;
+      }
+
+      .mic-btn {
+        right: 55px;
+      }
+
+      .file-btn {
+        right: 92px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .chatbox {
+        height: 400px;
+      }
+
+      .chat-header {
+        padding: 12px 15px;
+        font-size: 1rem;
+      }
+
+      .chat-body {
+        padding: 15px;
+      }
+
+      .text {
+        font-size: 13px;
+        padding: 10px 14px;
+      }
+
+      .company-name {
+        font-size: 1rem;
+      }
+
+      .chat-logo img {
+        width: 30px;
+        height: 30px;
+      }
+    }
+
+    /* Welcome message styling */
+    .welcome-message {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border: 2px solid #fada5e;
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .welcome-message h4 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .welcome-message ul {
+      margin: 10px 0;
+      padding-left: 20px;
+      color: #555;
+    }
+
+    .welcome-message li {
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Chatbot Toggle Button -->
+  <button class="chatbot-toggle" id="chatbot-toggle" onclick="toggleChatbot()">
+    <i class="fa-solid fa-comments"></i>
+  </button>
+
+  <!-- Chatbox -->
+  <div class="chatbox" id="chatbox">
+    <div class="chat-header">
+      <div class="chat-logo">
+        <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Syscraft Logo">
+        <div class="company-name">Syscraft AI</div>
+      </div>
+      <div class="chat-minimize" onclick="toggleChatbot()">
+        <i class="fa-solid fa-minus"></i>
+      </div>
+    </div>
+    
+    <div class="chat-body" id="chat-body">
+      <div class="message bot">
+        <div class="text welcome-message">
+          <h4>👋 Welcome to Syscraft AI!</h4>
+          I'm here to help you with:
+          <ul>
+            <li>🔧 IT Solutions & Technology Consulting</li>
+            <li>💼 Career Opportunities at Syscraft</li>
+            <li>📱 Web & Mobile Development</li>
+            <li>☁️ Cloud Services & DevOps</li>
+            <li>🤖 AI/ML & Chatbot Solutions</li>
+            <li>🎨 UI/UX Design Services</li>
+          </ul>
+          How can I assist you today?
+        </div>
+      </div>
+    </div>
+    
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Ask about our IT solutions, careers, or tech expertise..." class="form-control" />
+      <input type="file" id="resume-upload" accept=".pdf" style="display: none;" onchange="handleFileUpload('resume')" />
+      <input type="file" id="document-upload" accept=".pdf,.docx,.txt" style="display: none;" onchange="handleFileUpload('document')" />
+      <button class="file-btn btn" onclick="showFileOptions()" id="file-btn" title="Upload Files">
+        <i class="fa-solid fa-paperclip"></i>
+      </button>
+      <button class="mic-btn btn" onclick="toggleSpeechRecognition()" id="mic-btn" title="Voice Input">
+        <i class="fa-solid fa-microphone"></i>
+      </button>
+      <button class="send-btn btn" onclick="sendMessage()" id="send-btn">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- File Options Modal (Simple) -->
+  <div id="file-options" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); padding: 20px; z-index: 1001;">
+    <h5>Choose File Type:</h5>
+    <button onclick="selectFileType('resume')" style="display: block; width: 100%; margin: 10px 0; padding: 10px; background: #fada5e; border: none; border-radius: 5px; cursor: pointer;">📄 Upload Resume (PDF)</button>
+    <button onclick="selectFileType('document')" style="display: block; width: 100%; margin: 10px 0; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">📁 Upload Document (PDF/DOCX/TXT)</button>
+    <button onclick="closeFileOptions()" style="display: block; width: 100%; margin: 10px 0; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+  </div>
+  <div id="file-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;" onclick="closeFileOptions()"></div>
+ 
+  <script>
+const sessionId = Math.random().toString(36).substring(2);
+
+// Speech Recognition Variables
+let recognition = null;
+let isRecording = false;
+
+// Document storage - updated to match backend expectations
+let uploadedResume = null;
+let uploadedDocument = null;
+
+// Chatbot toggle functionality
+function toggleChatbot() {
+  const chatbox = document.getElementById('chatbox');
+  const toggleBtn = document.getElementById('chatbot-toggle');
+  
+  if (chatbox.classList.contains('active')) {
+    chatbox.classList.remove('active');
+    toggleBtn.classList.remove('active');
+    toggleBtn.innerHTML = '<i class="fa-solid fa-comments"></i>';
+  } else {
+    chatbox.classList.add('active');
+    toggleBtn.classList.add('active');
+    toggleBtn.innerHTML = '<i class="fa-solid fa-times"></i>';
+    
+    setTimeout(() => {
+      document.getElementById('user-input').focus();
+    }, 300);
+  }
+}
+
+// File options modal
+function showFileOptions() {
+  document.getElementById('file-options').style.display = 'block';
+  document.getElementById('file-overlay').style.display = 'block';
+}
+
+function closeFileOptions() {
+  document.getElementById('file-options').style.display = 'none';
+  document.getElementById('file-overlay').style.display = 'none';
+}
+
+function selectFileType(type) {
+  closeFileOptions();
+  if (type === 'resume') {
+    document.getElementById('resume-upload').click();
+  } else {
+    document.getElementById('document-upload').click();
+  }
+}
+
+// Initialize Speech Recognition
+function initSpeechRecognition() {
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = function() {
+      isRecording = true;
+      const micBtn = document.getElementById('mic-btn');
+      micBtn.classList.add('recording');
+      micBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+      micBtn.title = 'Stop Recording';
+      document.getElementById('user-input').placeholder = 'Listening...';
+    };
+    
+    recognition.onresult = function(event) {
+      let finalTranscript = '';
+      let interimTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      
+      const input = document.getElementById('user-input');
+      input.value = finalTranscript || interimTranscript;
+    };
+    
+    recognition.onend = function() {
+      isRecording = false;
+      const micBtn = document.getElementById('mic-btn');
+      micBtn.classList.remove('recording');
+      micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+      micBtn.title = 'Voice Input';
+      document.getElementById('user-input').placeholder = 'Ask about our IT solutions, careers, or tech expertise...';
+      
+      const input = document.getElementById('user-input');
+      if (input.value.trim()) {
+        sendMessage();
+      }
+    };
+    
+    recognition.onerror = function(event) {
+      console.error('Speech recognition error:', event.error);
+      isRecording = false;
+      const micBtn = document.getElementById('mic-btn');
+      micBtn.classList.remove('recording');
+      micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+      micBtn.title = 'Voice Input';
+      document.getElementById('user-input').placeholder = 'Ask about our IT solutions, careers, or tech expertise...';
+    };
+  }
+}
+
+function toggleSpeechRecognition() {
+  if (!recognition) {
+    alert('Speech recognition is not supported in your browser. Please use Chrome, Safari, or Edge.');
+    return;
+  }
+  
+  if (isRecording) {
+    recognition.stop();
+  } else {
+    recognition.start();
+  }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initSpeechRecognition();
+});
+
+function appendMessage(sender, initialText = "") {
+  const chatBody = document.getElementById("chat-body");
+  const messageDiv = document.createElement("div");
+  messageDiv.classList.add("message", sender);
+
+  const textDiv = document.createElement("div");
+  textDiv.classList.add("text");
+  textDiv.innerHTML = initialText;
+
+  messageDiv.appendChild(textDiv);
+  chatBody.appendChild(messageDiv);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  return textDiv;
+}
+
+function showTypingIndicator() {
+  const chatBody = document.getElementById("chat-body");
+  const typingDiv = document.createElement("div");
+  typingDiv.id = "typing-indicator";
+  typingDiv.classList.add("message", "bot");
+
+  const textDiv = document.createElement("div");
+  textDiv.classList.add("text", "typing");
+  textDiv.innerText = "Syscraft AI is typing...";
+
+  typingDiv.appendChild(textDiv);
+  chatBody.appendChild(typingDiv);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const typing = document.getElementById("typing-indicator");
+  if (typing) typing.remove();
+}
+
+function disableInput() {
+  document.getElementById("user-input").disabled = true;
+  document.getElementById("send-btn").disabled = true;
+  const micBtn = document.getElementById("mic-btn");
+  if (micBtn) micBtn.disabled = true;
+}
+
+function enableInput() {
+  document.getElementById("user-input").disabled = false;
+  document.getElementById("send-btn").disabled = false;
+  const micBtn = document.getElementById("mic-btn");
+  if (micBtn) micBtn.disabled = false;
+  document.getElementById("user-input").focus();
+}
+
+function formatResponse(text) {
+  if (typeof text !== "string") {
+    text = JSON.stringify(text, null, 2);
+  }
+
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/`(.*?)`/g, "<code>$1</code>")
+    .replace(/(?:^|\s)(https?:\/\/[^\s]+)/g, ' <a href="$1" target="_blank">$1</a>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+function typeText(element, rawHtml, callback) {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = rawHtml;
+  const plainText = tempDiv.innerText || tempDiv.textContent;
+
+  let index = 0;
+  const typingSpeed = 30;
+
+  function type() {
+    if (index < plainText.length) {
+      const char = plainText.charAt(index);
+      element.innerHTML += char === "\n" ? "<br>" : char;
+      index++;
+      setTimeout(type, typingSpeed);
+    } else {
+      element.innerHTML = rawHtml;
+      if (callback) callback();
+    }
+  }
+  type();
+}
+
+async function sendMessage() {
+  const input = document.getElementById("user-input");
+  const message = input.value.trim();
+  if (!message) return;
+
+  const userBubble = appendMessage("user", message);
+  input.value = "";
+  disableInput();
+  showTypingIndicator();
+
+  try {
+    let requestBody = { 
+      message, 
+      session_id: sessionId 
+    };
+    
+    // Check if message is job-related and include resume data
+    const isJobRelated = checkIfJobRelated(message);
+    if (isJobRelated && uploadedResume) {
+      requestBody.resume_data = uploadedResume;
+    }
+    
+    // Include document data if available (for general document analysis)
+    if (uploadedDocument && (message.toLowerCase().includes('analyze') || message.toLowerCase().includes('document'))) {
+      requestBody.document_data = uploadedDocument;
+    }
+
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody)
+    });
+
+    const data = await res.json();
+    removeTypingIndicator();
+
+    if (data.status === "success") {
+      const raw = data.data.answer || data.data;
+      const formatted = formatResponse(raw);
+      const botBubble = appendMessage("bot", "");
+      
+      typeText(botBubble, formatted, function() {
+        enableInput();
+        showQuickActions(message, raw);
+      });
+    } else {
+      appendMessage("bot", "⚠️ Error: " + (data.error || "Unknown error"));
+      enableInput();
+    }
+  } catch (err) {
+    console.error(err);
+    removeTypingIndicator();
+    appendMessage("bot", "⚠️ Failed to connect to the server. Please check your internet connection and try again.");
+    enableInput();
+  }
+}
+
+function checkIfJobRelated(message) {
+  const jobKeywords = [
+    'job', 'role', 'position', 'career', 'apply', 'application', 
+    'resume', 'cv', 'hire', 'hiring', 'interview', 'qualification',
+    'skills', 'experience', 'employment', 'vacancy', 'opening',
+    'suitable', 'fit', 'match', 'candidate'
+  ];
+  return jobKeywords.some(keyword => message.toLowerCase().includes(keyword));
+}
+
+function showQuickActions(userMessage, botResponse) {
+  const chatBody = document.getElementById("chat-body");
+  const actions = [];
+  
+  if (checkIfJobRelated(userMessage) && !uploadedResume) {
+    actions.push({
+      text: "📄 Upload Resume",
+      action: () => selectFileType('resume')
+    });
+  }
+  
+  if (botResponse.toLowerCase().includes('job') || botResponse.toLowerCase().includes('position')) {
+    actions.push({
+      text: "🔍 View All Jobs",
+      action: () => sendPredefinedMessage("Show me all available job openings")
+    });
+  }
+  
+  if (actions.length > 0) {
+    const actionsDiv = document.createElement("div");
+    actionsDiv.classList.add("quick-actions");
+    
+    actions.forEach(actionObj => {
+      const button = document.createElement("button");
+      button.textContent = actionObj.text;
+      button.classList.add("quick-action-btn");
+      button.onclick = actionObj.action;
+      actionsDiv.appendChild(button);
+    });
+    
+    chatBody.appendChild(actionsDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    
+    setTimeout(() => {
+      if (actionsDiv.parentNode) {
+        actionsDiv.remove();
+      }
+    }, 30000);
+  }
+}
+
+function sendPredefinedMessage(message) {
+  document.getElementById('user-input').value = message;
+  sendMessage();
+}
+
+// File upload handler - updated to match backend
+async function handleFileUpload(fileType) {
+  const fileInput = document.getElementById(`${fileType}-upload`);
+  const file = fileInput.files[0];
+  
+  if (!file) return;
+  
+  // Validation based on file type
+  if (fileType === 'resume') {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      appendMessage("bot", "⚠️ Please upload a PDF file for resume.");
+      return;
+    }
+  } else {
+    const validExtensions = ['.pdf', '.docx', '.txt'];
+    const isValid = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    if (!isValid) {
+      appendMessage("bot", "⚠️ Please upload a PDF, DOCX, or TXT file for documents.");
+      return;
+    }
+  }
+  
+  if (file.size > 5 * 1024 * 1024) {
+    appendMessage("bot", "⚠️ File size should be less than 5MB.");
+    return;
+  }
+  
+  disableInput();
+  appendMessage("user", `📄 Uploaded ${fileType}: ${file.name}`);
+  showTypingIndicator();
+  
+  try {
+    const formData = new FormData();
+    formData.append(fileType, file);
+    
+    const endpoint = fileType === 'resume' ? '/upload_resume' : '/upload_document';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    removeTypingIndicator();
+    
+    if (result.status === 'success') {
+      if (fileType === 'resume') {
+        uploadedResume = {
+          filename: result.filename,
+          base64_content: result.base64_content
+        };
+        
+        appendMessage("bot", `✅ Resume uploaded successfully! I can now help match you with suitable positions at Syscraft.`);
+        
+        // Auto-analyze resume for role matching
+        setTimeout(async () => {
+          showTypingIndicator();
+          try {
+            const analysisResponse = await fetch("/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                message: "Based on my uploaded resume, which roles at Syscraft would be a good fit for me?", 
+                session_id: sessionId,
+                resume_data: uploadedResume
+              })
+            });
+            
+            const analysisData = await analysisResponse.json();
+            removeTypingIndicator();
+            
+            if (analysisData.status === "success") {
+              const raw = analysisData.data.answer || analysisData.data;
+              const formatted = formatResponse(raw);
+              const botBubble = appendMessage("bot", "");
+              
+              typeText(botBubble, formatted, function() {
+                enableInput();
+              });
+            } else {
+              appendMessage("bot", "⚠️ Error analyzing resume: " + (analysisData.error || "Unknown error"));
+              enableInput();
+            }
+          } catch (err) {
+            console.error(err);
+            removeTypingIndicator();
+            appendMessage("bot", "⚠️ Failed to analyze resume. You can ask me about role matching manually.");
+            enableInput();
+          }
+        }, 1000);
+        
+      } else {
+        // Handle document upload
+        uploadedDocument = {
+          filename: result.filename,
+          extracted_text: result.extracted_text
+        };
+        
+        appendMessage("bot", `✅ Document "${result.filename}" uploaded successfully! I can now analyze its contents. Ask me questions about the document or request analysis.`);
+        enableInput();
+      }
+    } else {
+      appendMessage("bot", `⚠️ Error uploading ${fileType}: ` + (result.error || "Unknown error"));
+      enableInput();
+    }
+  } catch (err) {
+    console.error(err);
+    removeTypingIndicator();
+    appendMessage("bot", `⚠️ Failed to upload ${fileType}. Please try again.`);
+    enableInput();
+  }
+  
+  fileInput.value = ''; // Reset file input
+}
+
+// Handle Enter key press
+document.getElementById("user-input").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") sendMessage();
+});
+
+// Close chatbot when clicking outside (optional)
+document.addEventListener('click', function(event) {
+  const chatbox = document.getElementById('chatbox');
+  const toggleBtn = document.getElementById('chatbot-toggle');
+  const fileOptions = document.getElementById('file-options');
+  
+  // Close file options if clicking outside
+  if (fileOptions.style.display === 'block' && 
+      !fileOptions.contains(event.target)) {
+    closeFileOptions();
+  }
+});
+
+// Auto-focus on input when chatbox opens
+function focusInput() {
+  const input = document.getElementById('user-input');
+  if (input && document.getElementById('chatbox').classList.contains('active')) {
+    input.focus();
+  }
+}
+
+// Call focus function periodically when chat is open
+setInterval(function() {
+  if (document.getElementById('chatbox').classList.contains('active') && 
+      !document.getElementById('user-input').disabled) {
+    // Only focus if no other element is focused
+    if (document.activeElement === document.body) {
+      focusInput();
+    }
+  }
+}, 5000);
+  </script>
+ 
+</body>
+</html>
