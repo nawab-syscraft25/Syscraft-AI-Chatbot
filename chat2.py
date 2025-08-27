@@ -36,7 +36,10 @@ class State(TypedDict):
 from tools.hr_jobs import save_job_application, get_active_job_openings
 
 @tool("save_job_application")
-def save_job_application_tool(name: str, email: str, phone: str, position: str, resume_filename: str, resume_content: str) -> dict:
+def save_job_application_tool(
+    name: str, email: str, phone: str, position: str, 
+    resume_filename: str, resume_content: str
+) -> dict:
     """
     Save a job application with resume and extract text.
     - name: Candidate's full name
@@ -46,18 +49,26 @@ def save_job_application_tool(name: str, email: str, phone: str, position: str, 
     - resume_filename: The original filename of the resume
     - resume_content: Summary of the resume content like "Experienced software developer with a background in building scalable applications."
     """
+    print("nawab ye Resume:-", resume_content)
+
     try:
-        application_id, extracted_text = save_job_application(
-            name, email, phone, position, resume_filename, resume_content
+        # Use resume_content as extracted_text if PDF parsing fails
+        extracted_text = resume_content if resume_content else "No resume content provided."
+
+        application_id, _ = save_job_application(
+            name, email, phone, position, resume_filename, extracted_text
         )
+
         return {
-            "success": True,
-            "application_id": application_id,
-            "message": "Job application saved successfully",
-            "extracted_text_preview": extracted_text[:300] + "..." if extracted_text else None
+            "status": "success",
+            "application_id": application_id
         }
+
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 @tool("get_job_openings")
 def get_job_openings_tool() -> list:
@@ -189,66 +200,140 @@ tools = [
 llm = init_chat_model("google_genai:gemini-2.5-flash")
 llm_with_tools = llm.bind_tools(tools)
 
+# SYSTEM_PROMPT = SystemMessage(
+#     content="""
+# You are **Syscraft AI**, an advanced recruitment and HR assistant for Syscraft Technologies.
+# official company website is https://syscraftonline.com/
+# 🎯 **Your Core Responsibilities:**
+
+# 1. **HR & Recruitment Functions:**
+#    - Resume screening and analysis
+#    - Job role matching and recommendations
+#    - Application processing and guidance
+#    - Interview scheduling assistance
+#    - HR policy information
+
+# 2. **Sales & Business Inquiries:**
+#    - IT services information
+#    - Project consultation
+#    - Technical solutions guidance
+#    - Service pricing discussions
+#    - Business partnership opportunities
+
+# 3. **Document Analysis:**
+#    - Resume parsing and skill extraction
+#    - Project requirement analysis
+#    - Technical document review
+#    - Proposal evaluation
+
+# 4. **Conversational Intelligence:**
+#    - Context-aware responses
+#    - Multi-turn conversation handling
+#    - Personalized recommendations
+#    - Professional communication
+
+# **🔧 Available Tools:**
+# - `get_job_openings`: Fetch current job opportunities
+# - `save_job_application`: Process job applications with resumes
+# - `save_sales_inquiry`: Handle sales and business inquiries
+# - `analyze_resume_for_roles`: Match resumes to suitable positions
+# - `get_date_and_time`: Get current timestamp
+
+# **📋 Response Guidelines:**
+# - Always be professional, helpful, and engaging
+# - For HR queries: Focus on matching candidates to roles, application process
+# - For sales queries: Highlight Syscraft's technical expertise and solutions
+# - When analyzing resumes: Provide detailed role matching with explanations
+# - Ask clarifying questions when needed
+# - Provide actionable next steps
+# - If User Upload the Resume
+#   - Extract and analyze the resume content
+#   - Match the resume with suitable job roles
+#   - Provide Short feedback and next steps for the user
+#   - Save the resume data for future reference
+
+# **🚀 Key Capabilities:**
+# - Multi-format document processing (PDF, DOCX, TXT)
+# - Intelligent role-candidate matching
+# - Comprehensive inquiry handling
+# - Real-time job opening updates
+# - Professional communication across all interactions
+
+# Remember: You represent Syscraft Technologies - a leading IT solutions provider. Always maintain professionalism while being helpful and informative.
+# """
+# )
+
+
 SYSTEM_PROMPT = SystemMessage(
     content="""
-You are **Syscraft AI**, an advanced recruitment and HR assistant for Syscraft Technologies.
-official company website is https://syscraftonline.com/
-🎯 **Your Core Responsibilities:**
+You are **Syscraft AI**, an advanced recruitment and HR assistant for Syscraft Technologies.  
+Official company website: https://syscraftonline.com/
 
-1. **HR & Recruitment Functions:**
+🎯 Core Responsibilities:
+
+1. HR & Recruitment Functions:
    - Resume screening and analysis
    - Job role matching and recommendations
    - Application processing and guidance
    - Interview scheduling assistance
    - HR policy information
 
-2. **Sales & Business Inquiries:**
+2. Sales & Business Inquiries:
    - IT services information
    - Project consultation
    - Technical solutions guidance
    - Service pricing discussions
    - Business partnership opportunities
 
-3. **Document Analysis:**
+3. Document Analysis:
    - Resume parsing and skill extraction
    - Project requirement analysis
    - Technical document review
    - Proposal evaluation
 
-4. **Conversational Intelligence:**
+4. Conversational Intelligence:
    - Context-aware responses
    - Multi-turn conversation handling
    - Personalized recommendations
    - Professional communication
 
-**🔧 Available Tools:**
-- `get_job_openings`: Fetch current job opportunities
-- `save_job_application`: Process job applications with resumes
-- `save_sales_inquiry`: Handle sales and business inquiries
-- `analyze_resume_for_roles`: Match resumes to suitable positions
-- `get_date_and_time`: Get current timestamp
+🔧 Available Tools:
+- `get_job_openings`: Fetch current job opportunities  
+- `save_job_application`: Process job applications with resumes  
+- `save_sales_inquiry`: Handle sales and business inquiries  
+- `analyze_resume_for_roles`: Match resumes to suitable positions  
+- `get_date_and_time`: Get current timestamp  
 
-**📋 Response Guidelines:**
-- Always be professional, helpful, and engaging
-- For HR queries: Focus on matching candidates to roles, application process
-- For sales queries: Highlight Syscraft's technical expertise and solutions
-- When analyzing resumes: Provide detailed role matching with explanations
-- Ask clarifying questions when needed
-- Provide actionable next steps
-- If User Upload the Resume
-  - Extract and analyze the resume content
-  - Match the resume with suitable job roles
-  - Provide Short feedback and next steps for the user
-  - Save the resume data for future reference
+📋 Response Guidelines:
+- Always be professional, clear, and concise  
+- Use **short, scannable bullet points** for listings (jobs, skills, etc.)  
+- For HR queries: Match candidate to role + next step (short summary only)  
+- For sales queries: Highlight Syscraft's expertise in 2–3 sentences max  
+- When analyzing resumes:  
+  - Provide **top match role** with % score  
+  - Mention 1–2 other roles briefly  
+  - End with a next step (e.g., "Please share email & phone to apply")  
+- For job openings:  
+  - Always display in **clean bullet format** with role + key skills/experience  
+  - Example:  
+    - 🎓 Internship (0–1 yr, Programming basics)  
+    - 💻 Full Stack Developer (3+ yrs, React/Node/Python, DBs)  
+- Avoid lengthy explanations unless the user asks for details  
+- Keep tone professional but brief  
+- If user uploads resume:  
+  - Extract key skills  
+  - Suggest top role match in 2–3 lines  
+  - Give next step for application  
 
-**🚀 Key Capabilities:**
-- Multi-format document processing (PDF, DOCX, TXT)
-- Intelligent role-candidate matching
-- Comprehensive inquiry handling
-- Real-time job opening updates
-- Professional communication across all interactions
+🚀 Key Capabilities:
+- Multi-format document processing (PDF, DOCX, TXT)  
+- Intelligent role-candidate matching  
+- Comprehensive inquiry handling  
+- Real-time job opening updates  
+- Professional communication across all interactions  
 
-Remember: You represent Syscraft Technologies - a leading IT solutions provider. Always maintain professionalism while being helpful and informative.
+Remember: You represent Syscraft Technologies — a leading IT solutions provider.  
+Always maintain professionalism while being helpful, **but keep answers short, clear, and easy to scan.**
 """
 )
 
@@ -309,14 +394,57 @@ def extract_resume_data(resume_data: str) -> tuple:
     
     return None, resume_data
 
-def chat(message: str, session: str, resume_data: str = None) -> dict:
+# def chat(message: str, session: str, resume_data: str = None) -> dict:
+#     """
+#     Main chat function that processes user messages and resume data
+    
+#     Args:
+#         message: User's message
+#         session: Session ID for conversation continuity
+#         resume_data: Optional resume data (dict with filename, base64_content, extracted_text)
+    
+#     Returns:
+#         Formatted response as JSON string
+#     """
+#     try:
+#         config = {'configurable': {'thread_id': session}}
+        
+#         # Process resume data if provided
+#         enhanced_message = message
+#         if resume_data and isinstance(resume_data, str):
+#             enhanced_message += f"\n\n[USER_RESUME]\n{resume_data}\n[/USER_RESUME]"
+
+#         # Invoke the graph
+#         state = graph.invoke(
+#             {"messages": [{"role": "user", "content": enhanced_message}]}, 
+#             config=config
+#         )
+        
+#         response = state["messages"][-1].content
+#         result = extract_json(response)
+        
+#         # Ensure we always return a properly formatted response
+#         if isinstance(result, dict):
+#             return json.dumps(result, indent=2, ensure_ascii=False)
+#         else:
+#             return json.dumps({"answer": str(result)}, indent=2, ensure_ascii=False)
+            
+#     except Exception as e:
+#         error_response = {
+#             "answer": f"I apologize, but I encountered an error while processing your request: {str(e)}. Please try again or contact support if the issue persists."
+#         }
+#         return json.dumps(error_response, indent=2, ensure_ascii=False)
+
+
+
+def chat(message: str, session: str, resume_data: dict | str = None) -> dict:
     """
-    Main chat function that processes user messages and resume data
+    Main chat function that processes user messages and resume data.
     
     Args:
         message: User's message
         session: Session ID for conversation continuity
-        resume_data: Optional resume data (dict with filename, base64_content, extracted_text)
+        resume_data: Optional resume data (dict with filename, base64_content, extracted_text OR plain string)
     
     Returns:
         Formatted response as JSON string
@@ -326,15 +454,26 @@ def chat(message: str, session: str, resume_data: str = None) -> dict:
         
         # Process resume data if provided
         enhanced_message = message
-        if resume_data and isinstance(resume_data, str):
-            enhanced_message += f"\n\n[USER_RESUME]\n{resume_data}\n[/USER_RESUME]"
+        if resume_data:
+            if isinstance(resume_data, dict):
+                # Structured payload with filename and extracted text
+                enhanced_message += (
+                    f"\n\n[USER_RESUME]\n"
+                    f"Filename: {resume_data.get('filename')}\n"
+                    f"Extracted Text:\n{resume_data.get('extracted_text')}\n"
+                    f"[/USER_RESUME]"
+                )
+            elif isinstance(resume_data, str):
+                # Fallback for raw string resume data
+                enhanced_message += f"\n\n[USER_RESUME]\n{resume_data}\n[/USER_RESUME]"
 
-        # Invoke the graph
+        # Invoke the graph (LangGraph will also handle tool calls if registered)
         state = graph.invoke(
             {"messages": [{"role": "user", "content": enhanced_message}]}, 
             config=config
         )
         
+        # Extract the last assistant message
         response = state["messages"][-1].content
         result = extract_json(response)
         

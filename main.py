@@ -96,6 +96,46 @@ def chat_endpoint():
         return jsonify({"status": "error", "error": str(e)}), 500
 
 
+# @app.route("/upload_file", methods=["POST"])
+# def upload_file():
+#     if "resume" not in request.files:
+#         return jsonify({"status": "error", "error": "No file"}), 400
+
+#     file = request.files["resume"]
+#     session_id = request.form.get("session_id", "default_session")
+
+#     if file.filename == "":
+#         return jsonify({"status": "error", "error": "No selected file"}), 400
+
+#     if not file.filename.lower().endswith((".pdf", ".docx", ".txt")):
+#         return jsonify({"status": "error", "error": "Only PDF, DOCX, TXT allowed"}), 400
+
+#     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+#     file.save(filepath)
+
+#     text_content = extract_text_from_file(filepath)
+#     encoded = file_to_base64(filepath)
+
+#     ai_reply = chat(
+#         message="Here is my Document:",
+#         session=session_id,
+#         resume_data=text_content.strip()
+#     )
+
+#     try:
+#         data = json.loads(ai_reply) if isinstance(ai_reply, str) else ai_reply
+#     except json.JSONDecodeError:
+#         data = {"answer": str(ai_reply)}
+
+#     return jsonify({
+#         "status": "success",
+#         "filename": file.filename,
+#         "base64_content": encoded,
+#         "plain_text": text_content.strip(),
+#         "analysis": data
+#     })
+
+
 @app.route("/upload_file", methods=["POST"])
 def upload_file():
     if "resume" not in request.files:
@@ -110,17 +150,29 @@ def upload_file():
     if not file.filename.lower().endswith((".pdf", ".docx", ".txt")):
         return jsonify({"status": "error", "error": "Only PDF, DOCX, TXT allowed"}), 400
 
+    # Save file temporarily
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
 
+    # Extract text + base64
     text_content = extract_text_from_file(filepath)
     encoded = file_to_base64(filepath)
 
+    # Prepare resume metadata for LLM
+    # print(encoded)
+    resume_payload = {
+        "filename": file.filename,
+        # "base64_content": encoded,
+        "extracted_text": text_content.strip()
+    }
+
+    # Call chat with structured resume data
     ai_reply = chat(
-        message="According to my resume, for which role am I a good fit?",
+        message="Here is my Document:",
         session=session_id,
-        resume_data=text_content.strip()
+        resume_data=resume_payload
     )
+    file.close()
 
     try:
         data = json.loads(ai_reply) if isinstance(ai_reply, str) else ai_reply
@@ -168,8 +220,8 @@ USER_NAME= os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 # ---------------------------
-ADMIN_USERNAME = USER_NAME
-ADMIN_PASSWORD = ADMIN_PASSWORD
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "Mycraft123"
 
 
 def check_auth(username, password):

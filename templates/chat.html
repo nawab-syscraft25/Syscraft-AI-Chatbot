@@ -135,9 +135,12 @@
       font-size: 14px;
       word-wrap: break-word;
       overflow-wrap: break-word;
-      max-width: 80%;
+      max-width: 90%;
       border: 1px solid #e0e0e0;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    ul{
+      margin: 0px;
     }
 
     .text {
@@ -415,24 +418,24 @@
       border: 2px solid #fada5e;
       border-radius: 15px;
       padding: 15px;
-      margin-bottom: 15px;
+      /* margin-bottom: 15px; */
     }
 
     .welcome-message h4 {
       color: #333;
-      margin-bottom: 10px;
+      /* margin-bottom: 10px; */
       font-size: 1.1rem;
     }
 
     .welcome-message ul {
-      margin: 10px 0;
+      /* margin: 10px 0; */
       padding-left: 20px;
-      color: #555;
+      color: #000000;
     }
 
     .welcome-message li {
-      margin-bottom: 5px;
-      font-size: 13px;
+      /* margin-bottom: 5px; */
+      font-size: 14px;
     }
   </style>
 </head>
@@ -789,7 +792,7 @@
       }
 
       disableInput();
-      appendMessage("user", `📄 Uploaded resume: ${file.name}`);
+      appendMessage("user", `📄 Document Uploaded: ${file.name}`);
       showTypingIndicator();
 
       try {
@@ -813,7 +816,7 @@
             base64_content: result.base64_content
           };
 
-          appendMessage("bot", `✅ Resume uploaded successfully! Let me analyze your resume to find the best role match for you at Syscraft...`);
+          appendMessage("bot", `✅ Document Uploaded successfully. Let me analyze the document please wait for a moment...`);
 
           if (result.analysis) {
             let analysisText = result.analysis;
