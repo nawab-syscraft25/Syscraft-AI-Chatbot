@@ -150,19 +150,20 @@ def upload_file():
     if not file.filename.lower().endswith((".pdf", ".docx", ".txt")):
         return jsonify({"status": "error", "error": "Only PDF, DOCX, TXT allowed"}), 400
 
-    # Save file temporarily
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    # Rename file -> <session_id>_resume.<ext>
+    ext = os.path.splitext(file.filename)[1]   # keep extension (.pdf, .docx, etc.)
+    new_filename = f"{session_id}_resume{ext}"
+    filepath = os.path.join(UPLOAD_FOLDER, new_filename)
+
+    # Save renamed file
     file.save(filepath)
 
     # Extract text + base64
     text_content = extract_text_from_file(filepath)
-    encoded = file_to_base64(filepath)
 
-    # Prepare resume metadata for LLM
-    # print(encoded)
     resume_payload = {
-        "filename": file.filename,
-        # "base64_content": encoded,
+        "filename": new_filename,
+        "filepath": f"The file path is: uploads/{new_filename}",
         "extracted_text": text_content.strip()
     }
 
@@ -181,11 +182,11 @@ def upload_file():
 
     return jsonify({
         "status": "success",
-        "filename": file.filename,
-        "base64_content": encoded,
+        "filename": new_filename,
         "plain_text": text_content.strip(),
         "analysis": data
     })
+
 
 
 @app.route("/upload_document", methods=["POST"])
@@ -336,30 +337,66 @@ def delete_application(app_id):
     flash("Application deleted successfully!", "success")
     return redirect(url_for("applications_list"))
 
+# @app.route("/admin/applications/<int:app_id>/download_resume")
+# def download_resume(app_id):
+#     application = get_job_application(app_id)
+#     if application and application.get('resume_content'):
+#         try:
+#             # Decode base64 resume content
+#             resume_data = base64.b64decode(application['resume_content'])
+            
+#             # Create response with PDF content
+#             from flask import Response
+#             response = Response(
+#                 resume_data,
+#                 mimetype='application/pdf',
+#                 headers={
+#                     "Content-Disposition": f"attachment; filename={application['resume_filename']}"
+#                 }
+#             )
+#             return response
+#         except Exception as e:
+#             flash(f"Error downloading resume: {str(e)}", "error")
+#             return redirect(url_for("application_detail", app_id=app_id))
+#     else:
+#         flash("Resume not found!", "error")
+#         return redirect(url_for("application_detail", app_id=app_id))
+
+import os
+from flask import send_file, current_app, flash, redirect, url_for
+
 @app.route("/admin/applications/<int:app_id>/download_resume")
 def download_resume(app_id):
     application = get_job_application(app_id)
-    if application and application.get('resume_content'):
+
+    if application and application.get('file_path'):
         try:
-            # Decode base64 resume content
-            resume_data = base64.b64decode(application['resume_content'])
-            
-            # Create response with PDF content
-            from flask import Response
-            response = Response(
-                resume_data,
-                mimetype='application/pdf',
-                headers={
-                    "Content-Disposition": f"attachment; filename={application['resume_filename']}"
-                }
+            # Build full path (uploads folder + stored filename)
+            uploads_folder = os.path.join(current_app.root_path, "uploads")
+            full_path = os.path.join(uploads_folder, application['file_path'])
+
+            if not os.path.exists(full_path):
+                flash("File not found on server!", "error")
+                return redirect(url_for("application_detail", app_id=app_id))
+
+            # Send actual file for download
+            return send_file(
+                full_path,
+                as_attachment=True,
+                download_name=application['resume_filename']  # keep original filename for user
             )
-            return response
+
         except Exception as e:
             flash(f"Error downloading resume: {str(e)}", "error")
             return redirect(url_for("application_detail", app_id=app_id))
+
     else:
         flash("Resume not found!", "error")
         return redirect(url_for("application_detail", app_id=app_id))
+
+
+
+
 
 # ===== JOB OPENINGS MANAGEMENT =====
 @app.route("/admin/jobs")

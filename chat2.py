@@ -35,10 +35,30 @@ class State(TypedDict):
 
 from tools.hr_jobs import save_job_application, get_active_job_openings
 
+
+import base64
+
+def safe_extract_text(resume_content: str) -> str:
+    """
+    Try to decode PDF base64 content. If it's not valid base64, 
+    just return the plain text (resume_content).
+    """
+    try:
+        # Try to decode base64
+        decoded = base64.b64decode(resume_content, validate=True)
+        # If decode worked, try to parse PDF here (PyPDF2 / pdfminer)
+        # For now just return raw bytes decoded to string fallback
+        return decoded.decode("utf-8", errors="ignore")
+    except Exception:
+        # Not base64 → assume it's already plain text
+        return resume_content
+
+
+
 @tool("save_job_application")
 def save_job_application_tool(
     name: str, email: str, phone: str, position: str, 
-    resume_filename: str, resume_content: str
+    resume_filename: str, resume_content: str, file_path: str
 ) -> dict:
     """
     Save a job application with resume and extract text.
@@ -48,27 +68,25 @@ def save_job_application_tool(
     - position: The job position the candidate is applying for
     - resume_filename: The original filename of the resume
     - resume_content: Summary of the resume content like "Experienced software developer with a background in building scalable applications."
+    - file_path: The file path where the resume is stored 
     """
     print("nawab ye Resume:-", resume_content)
 
     try:
-        # Use resume_content as extracted_text if PDF parsing fails
-        extracted_text = resume_content if resume_content else "No resume content provided."
+        resume_content = safe_extract_text(resume_content)
 
         application_id, _ = save_job_application(
-            name, email, phone, position, resume_filename, extracted_text
+            name, email, phone, position, resume_filename, resume_content, file_path
         )
 
         return {
             "status": "success",
-            "application_id": application_id
+            "application_id": application_id,
+            "file_path": file_path
         }
 
     except Exception as e:
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return {"status": "error", "message": str(e)}
 
 @tool("get_job_openings")
 def get_job_openings_tool() -> list:
@@ -324,6 +342,8 @@ Official company website: https://syscraftonline.com/
   - Extract key skills  
   - Suggest top role match in 2–3 lines  
   - Give next step for application  
+Do not ask for personal Resume path if you know it.
+If You do not know the resume file path then ask for resume file. never ask about path if user uploads resume we get the path.
 
 🚀 Key Capabilities:
 - Multi-format document processing (PDF, DOCX, TXT)  

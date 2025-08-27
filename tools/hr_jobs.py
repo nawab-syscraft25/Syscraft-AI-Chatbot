@@ -23,7 +23,7 @@ def init_hr_db():
             position TEXT NOT NULL,
             resume_filename TEXT NOT NULL,
             resume_content TEXT,
-            extracted_text TEXT,
+            file_path TEXT,
             application_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             status TEXT DEFAULT 'pending'
         )
@@ -252,24 +252,52 @@ def analyze_resume_text(extracted_text):
     
     return analysis
 
-def save_job_application(name, email, phone, position, resume_filename, resume_content):
+def save_job_application(name, email, phone, position, resume_filename, resume_content, file_path):
     """Save a job application with resume."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     # Extract text from PDF
-    extracted_text = extract_text_from_pdf(resume_content)
+    # extracted_text = extract_text_from_pdf(resume_content)
     
     cursor.execute('''
-        INSERT INTO job_applications (name, email, phone, position, resume_filename, resume_content, extracted_text)
+        INSERT INTO job_applications (name, email, phone, position, resume_filename, resume_content, file_path)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (name, email, phone, position, resume_filename, resume_content, extracted_text))
+    ''', (name, email, phone, position, resume_filename, resume_content, file_path))
     
     application_id = cursor.lastrowid
     conn.commit()
     conn.close()
     
-    return application_id, extracted_text
+    return application_id, file_path
+
+# def get_job_application(application_id):
+#     """Get job application by ID."""
+#     conn = sqlite3.connect(DB_PATH)
+#     cursor = conn.cursor()
+    
+#     cursor.execute('''
+#         SELECT id, name, email, phone, position, resume_filename, resume_content, application_date, status
+#         FROM job_applications 
+#         WHERE id = ?
+#     ''', (application_id,))
+    
+#     application = cursor.fetchone()
+#     conn.close()
+    
+#     if application:
+#         return {
+#             "id": application[0],
+#             "name": application[1],
+#             "email": application[2],
+#             "phone": application[3],
+#             "position": application[4],
+#             "resume_filename": application[5],
+#             "resume_content": application[6],
+#             "application_date": application[7],
+#             "status": application[8]
+#         }
+#     return None
 
 def get_job_application(application_id):
     """Get job application by ID."""
@@ -277,7 +305,7 @@ def get_job_application(application_id):
     cursor = conn.cursor()
     
     cursor.execute('''
-        SELECT id, name, email, phone, position, resume_filename, extracted_text, application_date, status
+        SELECT id, name, email, phone, position, resume_filename, resume_content, file_path, application_date, status
         FROM job_applications 
         WHERE id = ?
     ''', (application_id,))
@@ -293,11 +321,14 @@ def get_job_application(application_id):
             "phone": application[3],
             "position": application[4],
             "resume_filename": application[5],
-            "extracted_text": application[6],
-            "application_date": application[7],
-            "status": application[8]
+            "resume_content": application[6],   # ✅ FIX
+            "file_path": application[7],
+            "application_date": application[8],
+            "status": application[9]
         }
     return None
+
+
 
 def get_all_applications():
     """Get all job applications."""
@@ -364,6 +395,14 @@ def add_sample_jobs():
             "Operations",
             "Looking for a DevOps Engineer to manage our cloud infrastructure and deployment pipelines.",
             "Experience with AWS/Azure, Docker, Kubernetes, CI/CD pipelines. Strong scripting skills.",
+            "Indore",
+            "Full-time"
+        )
+        add_job_opening(
+            "AI/ML Engineer",
+            "AI/ML",
+            "Join our AI team to develop innovative machine learning solutions and AI-powered applications.",
+            "Strong background in Python, TensorFlow/PyTorch, machine learning algorithms. Experience with NLP preferred.",
             "Indore",
             "Full-time"
         )
