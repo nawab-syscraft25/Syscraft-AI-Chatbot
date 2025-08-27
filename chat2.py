@@ -44,7 +44,7 @@ def save_job_application_tool(name: str, email: str, phone: str, position: str, 
     - phone: Candidate's phone number
     - position: The job position the candidate is applying for
     - resume_filename: The original filename of the resume
-    - resume_content: Base64 encoded PDF content of the resume
+    - resume_content: Summary of the resume content like "Experienced software developer with a background in building scalable applications."
     """
     try:
         application_id, extracted_text = save_job_application(
@@ -235,6 +235,11 @@ official company website is https://syscraftonline.com/
 - When analyzing resumes: Provide detailed role matching with explanations
 - Ask clarifying questions when needed
 - Provide actionable next steps
+- If User Upload the Resume
+  - Extract and analyze the resume content
+  - Match the resume with suitable job roles
+  - Provide Short feedback and next steps for the user
+  - Save the resume data for future reference
 
 **🚀 Key Capabilities:**
 - Multi-format document processing (PDF, DOCX, TXT)
