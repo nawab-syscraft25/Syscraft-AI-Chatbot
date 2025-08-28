@@ -85,15 +85,85 @@ def chat_endpoint():
         return jsonify({"error": "Missing 'message'"}), 400
 
     try:
+        save_message(session_id, "user", message)
         ai_reply = chat(message=message, session=session_id, resume_data=resume_data)
         try:
             data = json.loads(ai_reply)
+            save_message(session_id, "ai", str(data))
         except Exception:
             data = {"answer": str(ai_reply)}
         return jsonify({"status": "success", "data": data})
     except Exception as e:
         app.logger.exception("Error in chat")
         return jsonify({"status": "error", "error": str(e)}), 500
+
+
+
+
+
+
+def init_db():
+    conn = sqlite3.connect("chat_history.db")
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS chat_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id TEXT,
+                    role TEXT,
+                    message TEXT,
+                    timestamp TEXT
+                )''')
+    conn.commit()
+    conn.close()
+
+def save_message(session_id, role, message):
+    conn = sqlite3.connect("chat_history.db")
+    c = conn.cursor()
+    c.execute("INSERT INTO chat_history (session_id, role, message, timestamp) VALUES (?, ?, ?, ?)",
+              (session_id, role, message, datetime.utcnow().isoformat()))
+    conn.commit()
+    conn.close()
+
+def fetch_history(session_id):
+    conn = sqlite3.connect("chat_history.db")
+    c = conn.cursor()
+    c.execute("SELECT role, message, timestamp FROM chat_history WHERE session_id=? ORDER BY id ASC", (session_id,))
+    rows = c.fetchall()
+    conn.close()
+    return [{"role": r[0], "message": r[1], "time": r[2]} for r in rows]
+
+
+def fetch_all_sessions():
+    conn = sqlite3.connect("chat_history.db")
+    c = conn.cursor()
+    c.execute("SELECT DISTINCT session_id FROM chat_history ORDER BY session_id ASC")
+    sessions = [row[0] for row in c.fetchall()]
+    conn.close()
+    return sessions
+
+def fetch_all_history():
+    conn = sqlite3.connect("chat_history.db")
+    c = conn.cursor()
+    c.execute("SELECT session_id, role, message, timestamp FROM chat_history ORDER BY session_id, id ASC")
+    rows = c.fetchall()
+    conn.close()
+
+    history = {}
+    for session_id, role, message, timestamp in rows:
+        if session_id not in history:
+            history[session_id] = []
+        history[session_id].append({
+            "role": role,
+            "message": message,
+            "time": timestamp
+        })
+    return history
+
+
+
+
+
+
+
 
 
 # @app.route("/upload_file", methods=["POST"])
@@ -166,7 +236,7 @@ def upload_file():
         "filepath": f"The file path is: uploads/{new_filename}",
         "extracted_text": text_content.strip()
     }
-
+    save_message(session_id, "user", f"Here is my Document: + {text_content.strip()}")
     # Call chat with structured resume data
     ai_reply = chat(
         message="Here is my Document:",
@@ -177,8 +247,10 @@ def upload_file():
 
     try:
         data = json.loads(ai_reply) if isinstance(ai_reply, str) else ai_reply
+        save_message(session_id, "ai", str(data))
     except json.JSONDecodeError:
         data = {"answer": str(ai_reply)}
+        save_message(session_id, "ai", str(data))
 
     return jsonify({
         "status": "success",
@@ -245,25 +317,147 @@ def login():
         return redirect(url_for("admin_login"))
 
 
+# @app.route("/admin/dashboard")
+# def dashboard():
+#     contacts = get_contacts()
+#     applications = get_all_applications()
+#     job_openings = get_active_job_openings()
+#     all_history = fetch_all_history() 
+#     chat_sessions = fetch_all_sessions()
+#     recent_session_ids = list(all_history.keys())[-5:]  # last 5 sessions
+
+#     recent_sessions = []
+#     for sid in recent_session_ids:
+#         messages = all_history[sid]
+
+#         # Get last user message
+#         user_message = next((m['message'] for m in reversed(messages) if m['role'] == 'user'), "")
+
+#         # Get last AI reply
+#         ai_reply_raw = next((m['message'] for m in reversed(messages) if m['role'] == 'ai'), "")
+        
+#         # Extract actual text if AI reply is a dict
+#         if isinstance(ai_reply_raw, dict):
+#             ai_reply = ai_reply_raw.get("answer", str(ai_reply_raw))
+#         else:
+#             ai_reply = str(ai_reply_raw)
+
+#         recent_sessions.append({
+#             "session_id": sid,
+#             "user_message": user_message,
+#             "ai_reply": ai_reply
+#         })
+
+#     stats = {
+#         "total_contacts": len(contacts),
+#         "total_applications": len(applications),
+#         "total_job_openings": len(job_openings),
+#         "total_chat_sessions": len(chat_sessions),
+#         "recent_contacts": contacts[-5:] if contacts else [],
+#         "recent_applications": applications[:5] if applications else [],
+#         "recent_sessions": recent_sessions
+#     }
+#     return render_template("admin_dashboard.html", stats=stats)
+
+
+import ast  # to safely parse stringified dicts
+
 @app.route("/admin/dashboard")
 def dashboard():
+    # Fetch data
     contacts = get_contacts()
     applications = get_all_applications()
     job_openings = get_active_job_openings()
+    all_history = fetch_all_history()  # {session_id: [{role, message, time}, ...], ...}
+    chat_sessions = fetch_all_sessions()  # list of session_ids
+
+    # Last 5 sessions
+    recent_session_ids = list(all_history.keys())[-5:]
+    recent_sessions = []
+
+    for sid in recent_session_ids:
+        messages = all_history[sid]
+
+        # Last user message
+        user_message = next((m['message'] for m in reversed(messages) if m['role'] == 'user'), "")
+
+        # Last AI reply
+        ai_reply_raw = next((m['message'] for m in reversed(messages) if m['role'] == 'ai'), "")
+
+        # If AI reply is stringified dict, parse it
+        if isinstance(ai_reply_raw, str):
+            try:
+                parsed = ast.literal_eval(ai_reply_raw)
+                if isinstance(parsed, dict):
+                    ai_reply = parsed.get("answer", str(parsed))
+                else:
+                    ai_reply = str(parsed)
+            except Exception:
+                ai_reply = ai_reply_raw  # fallback: show as-is
+        elif isinstance(ai_reply_raw, dict):
+            ai_reply = ai_reply_raw.get("answer", str(ai_reply_raw))
+        else:
+            ai_reply = str(ai_reply_raw)
+
+        recent_sessions.append({
+            "session_id": sid,
+            "user_message": user_message,
+            "ai_reply": ai_reply
+        })
+
     stats = {
         "total_contacts": len(contacts),
         "total_applications": len(applications),
         "total_job_openings": len(job_openings),
+        "total_chat_sessions": len(chat_sessions),
         "recent_contacts": contacts[-5:] if contacts else [],
-        "recent_applications": applications[:5] if applications else []
+        "recent_applications": applications[:5] if applications else [],
+        "recent_sessions": recent_sessions if recent_sessions else []
     }
+
     return render_template("admin_dashboard.html", stats=stats)
+
+
 
 
 # (✅ You can paste all remaining `/admin/contacts`, `/admin/applications`, `/admin/jobs`, `/admin/database`, `/settings`
 # routes here, just change them to start with `/admin/...`)
 
+# @app.route("/admin/chat_history")
+# def admin_chat_history():
+#     history = fetch_all_history()
+#     return render_template("admin_chat_history.html", history=history)
 
+import ast
+
+@app.route("/admin/chat_history")
+def admin_chat_history():
+    raw_history = fetch_all_history()  # {session_id: [{role, message, time}, ...], ...}
+    history = {}
+
+    for session_id, messages in raw_history.items():
+        parsed_messages = []
+        for m in messages:
+            message = m['message']
+
+            # Parse AI messages if they are stringified dicts
+            if m['role'] == 'ai' and isinstance(message, str):
+                try:
+                    parsed = ast.literal_eval(message)
+                    if isinstance(parsed, dict):
+                        message = parsed.get("answer", str(parsed))
+                except Exception:
+                    message = message  # fallback: keep original string
+
+            parsed_messages.append({
+                "role": m['role'],
+                "message": message,
+                "time": m['time']
+            })
+
+        history[session_id] = parsed_messages
+
+    return render_template("admin_chat_history.html", history=history)
 
 # ===== CONTACTS MANAGEMENT =====
 @app.route("/admin/contacts")
@@ -534,5 +728,6 @@ def clear_applications():
 # Run App
 # ---------------------------
 if __name__ == "__main__":
+    init_db() 
     port = int(os.environ.get("PORT", 9050))
     app.run(host="0.0.0.0", port=port, debug=True)
