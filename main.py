@@ -773,36 +773,102 @@ def update_company_vectors_info(description):
     update_company_vectors(description)
     return "Description updated successfully!"
 
+
+
+
+# ===== COMPANY DESCRIPTION MANAGEMENT =====
+# @app.route("/admin/company", methods=["GET", "POST"])
+# @login_required
+# def company_description():
+#     conn = sqlite3.connect("tools/hr_applications.db")
+#     cursor = conn.cursor()
+#     cursor.execute("CREATE TABLE IF NOT EXISTS company_info (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+    
+#     if request.method == "POST":
+#         description = request.form.get("description")
+
+#         # Remove old entry (only 1 description allowed)
+#         cursor.execute("DELETE FROM company_info")
+#         cursor.execute("INSERT INTO company_info (description) VALUES (?)", (description,))
+#         conn.commit()
+#         conn.close()
+
+#         flash("Company description updated successfully!", "success")
+
+#         # TODO: Call function to update Pinecone vectors here
+#         update_company_vectors_info(description)
+
+#         return redirect(url_for("company_description"))
+    
+#     cursor.execute("SELECT description FROM company_info ORDER BY updated_at DESC LIMIT 1")
+#     row = cursor.fetchone()
+#     conn.close()
+
+#     current_description = row[0] if row else ""
+#     return render_template("admin_company.html", description=current_description)
+
+
+# ===== COMPANY DESCRIPTION & QUESTIONNAIRE MANAGEMENT =====
+
 # ===== COMPANY DESCRIPTION MANAGEMENT =====
 @app.route("/admin/company", methods=["GET", "POST"])
 @login_required
 def company_description():
     conn = sqlite3.connect("tools/hr_applications.db")
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS company_info (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-    
+
+    # Ensure base table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS company_info (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            description TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Ensure q1..q19 columns exist
+    for i in range(1, 20):
+        try:
+            cursor.execute(f"ALTER TABLE company_info ADD COLUMN q{i} TEXT")
+        except sqlite3.OperationalError:
+            pass
+
     if request.method == "POST":
         description = request.form.get("description")
+        answers = [request.form.get(f"q{i}") for i in range(1, 20)]
 
-        # Remove old entry (only 1 description allowed)
+        # Keep only 1 row
         cursor.execute("DELETE FROM company_info")
-        cursor.execute("INSERT INTO company_info (description) VALUES (?)", (description,))
+        cursor.execute(f"""
+            INSERT INTO company_info 
+            (description, {','.join([f'q{i}' for i in range(1, 20)])})
+            VALUES ({','.join(['?' for _ in range(20)])})
+        """, (description, *answers))
         conn.commit()
         conn.close()
 
-        flash("Company description updated successfully!", "success")
+        flash("Company description & questionnaire updated successfully!", "success")
 
-        # TODO: Call function to update Pinecone vectors here
-        update_company_vectors_info(description)
+        # Update Pinecone with full text
+        combined_text = description + "\n\n" + "\n".join(filter(None, answers))
+        update_company_vectors_info(combined_text)
 
         return redirect(url_for("company_description"))
-    
-    cursor.execute("SELECT description FROM company_info ORDER BY updated_at DESC LIMIT 1")
+
+    # Fetch latest row
+    cursor.execute(f"""
+        SELECT description, {','.join([f'q{i}' for i in range(1, 20)])}
+        FROM company_info ORDER BY updated_at DESC LIMIT 1
+    """)
     row = cursor.fetchone()
     conn.close()
 
-    current_description = row[0] if row else ""
-    return render_template("admin_company.html", description=current_description)
+    context = {"description": row[0] if row else ""}
+    for i in range(1, 20):
+        context[f"q{i}"] = row[i] if row and len(row) > i else ""
+
+    return render_template("admin_company.html", **context)
+
 
 
 @app.route("/admin/settings")
