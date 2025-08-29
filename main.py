@@ -14,7 +14,8 @@ from docx import Document
 
 # Import chat function
 from chat2 import chat
-
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+from functools import wraps
 # Import tools
 from tools.enquiry import get_contacts, get_contact_by_id, delete_contact, update_contact, add_contact
 from tools.hr_jobs import (
@@ -306,16 +307,38 @@ def admin_login():
     return render_template("admin_login.html")
 
 
+# @app.route("/admin/")
+# def admin_login():
+#     return render_template("admin_login.html")
+
 @app.route("/admin/login", methods=["POST"])
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
     if check_auth(username, password):
+        session["admin_logged_in"] = True   # ✅ save login state
         return redirect(url_for("dashboard"))
     else:
         flash("Invalid credentials!", "error")
         return redirect(url_for("admin_login"))
 
+
+@app.route("/admin/logout")
+def logout():
+    session.pop("admin_logged_in", None)
+    flash("Logged out successfully.", "success")
+    return redirect(url_for("admin_login"))
+
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get("admin_logged_in"):
+            flash("Please log in to access admin area.", "error")
+            return redirect(url_for("admin_login"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # @app.route("/admin/dashboard")
 # def dashboard():
@@ -363,6 +386,7 @@ def login():
 import ast  # to safely parse stringified dicts
 
 @app.route("/admin/dashboard")
+@login_required
 def dashboard():
     # Fetch data
     contacts = get_contacts()
@@ -461,22 +485,26 @@ def admin_chat_history():
 
 # ===== CONTACTS MANAGEMENT =====
 @app.route("/admin/contacts")
+@login_required
 def contacts_list():
     contacts = get_contacts()
     return render_template("admin_contacts.html", contacts=contacts)
 
 @app.route("/admin/contacts/<int:contact_id>")
+@login_required
 def contact_detail(contact_id):
     contact = get_contact_by_id(contact_id)
     return render_template("admin_contact_detail.html", contact=contact)
 
 @app.route("/admin/contacts/<int:contact_id>/delete", methods=["POST"])
+@login_required
 def delete_contact_route(contact_id):
     delete_contact(contact_id)
     flash("Contact deleted successfully!", "success")
     return redirect(url_for("contacts_list"))
 
 @app.route("/admin/contacts/<int:contact_id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_contact(contact_id):
     if request.method == "POST":
         name = request.form.get("name")
@@ -494,6 +522,7 @@ def edit_contact(contact_id):
     return render_template("admin_contact_edit.html", contact=contact)
 
 @app.route("/admin/contacts/add", methods=["GET", "POST"])
+@login_required
 def add_contact_route():
     if request.method == "POST":
         name = request.form.get("name")
@@ -510,16 +539,19 @@ def add_contact_route():
 
 # ===== JOB APPLICATIONS MANAGEMENT =====
 @app.route("/admin/applications")
+@login_required
 def applications_list():
     applications = get_all_applications()
     return render_template("admin_applications.html", applications=applications)
 
 @app.route("/admin/applications/<int:app_id>")
+@login_required
 def application_detail(app_id):
     application = get_job_application(app_id)
     return render_template("admin_application_detail.html", application=application)
 
 @app.route("/admin/applications/<int:app_id>/delete", methods=["POST"])
+@login_required
 def delete_application(app_id):
     # Delete from HR database
     conn = sqlite3.connect("tools/hr_applications.db")
@@ -560,6 +592,7 @@ import os
 from flask import send_file, current_app, flash, redirect, url_for
 
 @app.route("/admin/applications/<int:app_id>/download_resume")
+@login_required
 def download_resume(app_id):
     application = get_job_application(app_id)
 
@@ -594,11 +627,13 @@ def download_resume(app_id):
 
 # ===== JOB OPENINGS MANAGEMENT =====
 @app.route("/admin/jobs")
+@login_required
 def jobs_list():
     jobs = get_active_job_openings()
     return render_template("admin_jobs.html", jobs=jobs)
 
 @app.route("/admin/jobs/add", methods=["GET", "POST"])
+@login_required
 def add_job():
     if request.method == "POST":
         title = request.form.get("title")
@@ -616,6 +651,7 @@ def add_job():
     return render_template("admin_job_add.html")
 
 @app.route("/admin/jobs/<int:job_id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_job(job_id):
     if request.method == "POST":
         title = request.form.get("title")
@@ -659,6 +695,7 @@ def edit_job(job_id):
         return redirect(url_for("jobs_list"))
 
 @app.route("/admin/jobs/<int:job_id>/delete", methods=["POST"])
+@login_required
 def delete_job(job_id):
     conn = sqlite3.connect("tools/hr_applications.db")
     cursor = conn.cursor()
@@ -671,10 +708,12 @@ def delete_job(job_id):
 
 # ===== DATABASE MANAGEMENT =====
 @app.route("/admin/database")
+@login_required
 def database_management():
     return render_template("admin_database.html")
 
 @app.route("/admin/database/backup", methods=["POST"])
+@login_required
 def backup_database():
     try:
         import shutil
@@ -697,6 +736,7 @@ def backup_database():
     return redirect(url_for("database_management"))
 
 @app.route("/admin/database/clear_contacts", methods=["POST"])
+@login_required
 def clear_contacts():
     try:
         conn = sqlite3.connect("contacts.db")
@@ -711,6 +751,7 @@ def clear_contacts():
     return redirect(url_for("database_management"))
 
 @app.route("/admin/database/clear_applications", methods=["POST"])
+@login_required
 def clear_applications():
     try:
         conn = sqlite3.connect("tools/hr_applications.db")
@@ -723,6 +764,51 @@ def clear_applications():
         flash(f"Error clearing applications: {str(e)}", "error")
     
     return redirect(url_for("database_management"))
+
+from tools.about_syscraft import update_company_vectors
+
+def update_company_vectors_info(description):
+ 
+    # TODO: Implement function to update Pinecone vectors
+    update_company_vectors(description)
+    return "Description updated successfully!"
+
+# ===== COMPANY DESCRIPTION MANAGEMENT =====
+@app.route("/admin/company", methods=["GET", "POST"])
+@login_required
+def company_description():
+    conn = sqlite3.connect("tools/hr_applications.db")
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS company_info (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+    
+    if request.method == "POST":
+        description = request.form.get("description")
+
+        # Remove old entry (only 1 description allowed)
+        cursor.execute("DELETE FROM company_info")
+        cursor.execute("INSERT INTO company_info (description) VALUES (?)", (description,))
+        conn.commit()
+        conn.close()
+
+        flash("Company description updated successfully!", "success")
+
+        # TODO: Call function to update Pinecone vectors here
+        update_company_vectors_info(description)
+
+        return redirect(url_for("company_description"))
+    
+    cursor.execute("SELECT description FROM company_info ORDER BY updated_at DESC LIMIT 1")
+    row = cursor.fetchone()
+    conn.close()
+
+    current_description = row[0] if row else ""
+    return render_template("admin_company.html", description=current_description)
+
+
+@app.route("/admin/settings")
+@login_required
+def settings():
+    return render_template("admin_settings.html")
 
 # ---------------------------
 # Run App

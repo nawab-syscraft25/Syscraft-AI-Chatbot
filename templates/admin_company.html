@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Company Description & Questionnaire</h2>
+  <form method="POST">
+    <!-- Company Description -->
+    <div class="form-group mb-4">
+      <label for="description">Full Company Description (4–5 pages)</label>
+      <textarea id="description" name="description" rows="12" class="form-control">{{ description }}</textarea>
+    </div>
+
+    <h4 class="mt-5">Syscraft Company Information Questionnaire</h4>
+
+    <!-- Questions -->
+    <div class="form-group mt-3">
+      <label>Q1. What industries or domains does your company primarily focus on?</label>
+      <textarea name="q1" rows="2" class="form-control">{{ q1 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q2. What is your mission, vision, and core values?</label>
+      <textarea name="q2" rows="2" class="form-control">{{ q2 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q3. Can you share key awards, recognitions, or certifications achieved?</label>
+      <textarea name="q3" rows="2" class="form-control">{{ q3 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q4. What is the current team size, and how is it structured?</label>
+      <textarea name="q4" rows="2" class="form-control">{{ q4 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q5. What is the average experience level of your technical team?</label>
+      <textarea name="q5" rows="2" class="form-control">{{ q5 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q6. What main services does your company provide, and what tech stacks do you use?</label>
+      <textarea name="q6" rows="2" class="form-control">{{ q6 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q7. Do you offer advanced solutions such as AI/ML, IoT, or Blockchain?</label>
+      <textarea name="q7" rows="2" class="form-control">{{ q7 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q8. Do you provide end-to-end services (consulting → deployment → maintenance)?</label>
+      <textarea name="q8" rows="2" class="form-control">{{ q8 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q9. What types of projects do you usually work on?</label>
+      <textarea name="q9" rows="2" class="form-control">{{ q9 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q10. Who are your typical clients, and in which countries do you have active clients?</label>
+      <textarea name="q10" rows="2" class="form-control">{{ q10 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q11. What pricing models do you offer?</label>
+      <textarea name="q11" rows="2" class="form-control">{{ q11 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q12. What is your usual project duration or size?</label>
+      <textarea name="q12" rows="2" class="form-control">{{ q12 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q13. How does your sales process work?</label>
+      <textarea name="q13" rows="2" class="form-control">{{ q13 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q14. What project management and collaboration tools do you use?</label>
+      <textarea name="q14" rows="2" class="form-control">{{ q14 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q15. Do you follow Agile/Scrum and use CI/CD pipelines?</label>
+      <textarea name="q15" rows="2" class="form-control">{{ q15 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q16. What security standards or certifications do you follow?</label>
+      <textarea name="q16" rows="2" class="form-control">{{ q16 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q17. Do you have additional entities like Social Gorilla for marketing?</label>
+      <textarea name="q17" rows="2" class="form-control">{{ q17 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q18. Do you publish thought leadership content (blogs, whitepapers, etc.)?</label>
+      <textarea name="q18" rows="2" class="form-control">{{ q18 }}</textarea>
+    </div>
+
+    <div class="form-group mt-3">
+      <label>Q19. What client support do you provide?</label>
+      <textarea name="q19" rows="2" class="form-control">{{ q19 }}</textarea>
+    </div>
+
+    <!-- Save Button -->
+    <button type="submit" class="btn btn-primary mt-4">Save & Update</button>
+  </form>
+</div>
+{% endblock %}
