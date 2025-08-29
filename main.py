@@ -868,8 +868,14 @@ def company_description():
         context[f"q{i}"] = row[i] if row and len(row) > i else ""
 
     return render_template("admin_company.html", **context)
-
-
+from datetime import datetime
+@app.template_filter('format_dt')
+def format_dt(value):
+    try:
+        dt = datetime.fromisoformat(value)  # parses "2025-08-29T05:32:34.002588"
+        return dt.strftime("%d %b %Y, %I:%M %p")  # "29 Aug 2025, 05:32 AM"
+    except Exception:
+        return value  # fallback
 
 @app.route("/admin/settings")
 @login_required

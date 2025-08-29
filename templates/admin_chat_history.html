@@ -1,25 +1,32 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Chat History (All Sessions)</h2>
+<h2 class="mb-3">Chat History</h2>
 
 {% if history %}
-    {% for session_id, messages in history.items() %}
-        <div class="session-block">
-            <h3>Session: {{ session_id }}</h3>
-            <ul>
-                {% for msg in messages %}
-                    <li>
-                        <b>{{ msg.role|capitalize }}</b> ({{ msg.time }}): 
-                        {{ msg.message }}
-                    </li>
-                {% endfor %}
-            </ul>
-            <hr>
-        </div>
-    {% endfor %}
+  {% for session_id, messages in history.items() %}
+    <div class="card mb-4 shadow-sm border-0">
+      <div class="card-header bg-dark text-white">
+        <strong>Session:</strong> {{ session_id }}
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled">
+          {% for msg in messages %}
+            <li class="mb-3 p-2 rounded {% if msg.role == 'ai' %}bg-light{% else %}bg-white{% endif %}">
+              <div class="d-flex justify-content-between">
+                <strong>{{ msg.role|capitalize }}</strong>
+                <small class="text-muted">{{ msg.time|format_dt }}</small>
+
+              </div>
+              <div>{{ msg.message }}</div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endfor %}
 {% else %}
-    <p>No chat history available.</p>
+  <p>No chat history available.</p>
 {% endif %}
 
 {% endblock %}
